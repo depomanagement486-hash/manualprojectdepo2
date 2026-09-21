@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chakra E-Trans | Karimnagar Depot Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Excel reader + charts (both from cdnjs) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f4f6f9;
+    --bg-subtle: #eef1f6;
+    --card: #ffffff;
+    --line: #e2e8f0;
+    --line-strong: #cbd5e1;
+    --text: #0f172a;
+    --text-secondary: #334155;
+    --muted: #64748b;
+    --navy: #0c1e4a;
+    --navy-mid: #132b66;
+    --blue: #1e3a8a;
+    --blue-dark: #0f2660;
+    --blue-soft: #e8eef8;
+    --accent: #a3b82e;
+    --accent-dark: #7a8f18;
+    --green: #15803d;
+    --green-dark: #166534;
+    --green-soft: #dcfce7;
+    --red: #b91c1c;
+    --red-soft: #fee2e2;
+    --amber: #b45309;
+    --amber-soft: #fef3c7;
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.04);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --font: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --font-display: "DM Sans", "IBM Plex Sans", system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* ========== LOGIN ========== */
+  #loginScreen {
+    position: fixed; inset: 0; z-index: 100;
+    background: #071428 url('login-bg.png') center/cover no-repeat;
+    display: flex; align-items: center; justify-content: flex-start;
+  }
+  #loginScreen::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(115deg, rgba(7, 20, 40, 0.88) 0%, rgba(7, 20, 40, 0.55) 42%, rgba(7, 20, 40, 0.25) 100%);
+  }
+  .login-card {
+    position: relative; z-index: 2;
+    width: 100%; max-width: 400px;
+    margin-left: 7vw; margin-right: auto;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(18px) saturate(1.2);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 36px 34px 30px;
+    color: #fff;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+  }
+  .login-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .login-brand-mark {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: linear-gradient(145deg, #c8d94a, #8fae1f);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700; font-size: 15px; color: #0f2660;
+  }
+  .login-card h2 { margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .login-card .tag { font-size: 13px; color: rgba(201, 214, 240, 0.85); margin: 0 0 28px; }
+  .login-card label {
+    display: block; font-size: 11.5px; font-weight: 600;
+    color: rgba(207, 217, 245, 0.9); margin-bottom: 7px;
+    letter-spacing: 0.03em; text-transform: uppercase;
+  }
+  .login-card input {
+    width: 100%; padding: 12px 14px; margin-bottom: 18px;
+    border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.07); color: #fff;
+    font-size: 14.5px; font-family: inherit; outline: none;
+  }
+  .login-card input::placeholder { color: rgba(159, 176, 214, 0.7); }
+  .login-card input:focus { border-color: rgba(163, 184, 46, 0.7); background: rgba(255, 255, 255, 0.1); }
+  .login-card button {
+    width: 100%; padding: 13px; margin-top: 4px; border: none; border-radius: 8px;
+    font-size: 14.5px; font-weight: 650; font-family: inherit;
+    background: linear-gradient(135deg, #c9d84c 0%, #9ab52a 100%);
+    color: #0f2660; cursor: pointer;
+  }
+  .login-err { color: #fca5a5; font-size: 12.5px; margin-top: 12px; min-height: 18px; }
+  .login-hint {
+    font-size: 11.5px; color: rgba(159, 176, 214, 0.75); margin-top: 18px;
+    line-height: 1.55; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .login-hint b { color: rgba(201, 214, 240, 0.95); font-weight: 600; }
+
+  /* ========== APP SHELL ========== */
+  #app { display: none; min-height: 100vh; flex-direction: column; background: var(--bg); max-width: 100%; }
+
+  #topBanner { width: 100%; overflow: hidden; background: #06122c; border-bottom: 1px solid rgba(0,0,0,.2); line-height: 0; }
+  #topBanner .banner-logo { display: block; width: 100%; height: auto; max-height: 110px; object-fit: contain; }
+  @media (max-width: 720px) { #topBanner .banner-logo { max-height: 68px; } }
+
+  .logout-btn {
+    background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e2e8f0; padding: 7px 14px; border-radius: 7px;
+    font-size: 12.5px; font-weight: 560; font-family: inherit; cursor: pointer;
+  }
+  .logout-btn:hover { background: rgba(255, 255, 255, 0.14); }
+
+  .navtabs {
+    display: flex; align-items: stretch; background: var(--navy-mid);
+    padding: 0 20px; flex-wrap: wrap; border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  }
+  .navtab {
+    padding: 13px 16px; font-size: 13px; font-weight: 550;
+    color: rgba(199, 212, 240, 0.75); cursor: pointer;
+    border-bottom: 2.5px solid transparent; margin-bottom: -1px;
+  }
+  .navtab:hover { color: #fff; background: rgba(255, 255, 255, 0.04); }
+  .navtab.active { color: #fff; border-bottom-color: var(--accent); background: rgba(255, 255, 255, 0.05); }
+  .navtabs-right { display: flex; align-items: center; gap: 14px; margin-left: auto; padding: 8px 0; }
+  #whoami { font-size: 12.5px; color: rgba(219, 230, 255, 0.7); }
+
+  /* ========== DATA BAR (Excel upload) ========== */
+  .data-bar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+    background: #fff; border-bottom: 1px solid var(--line);
+    padding: 12px 28px;
+  }
+  .data-bar.drag { background: var(--accent-soft, #f3f7d9); outline: 2px dashed var(--accent-dark); outline-offset: -6px; }
+  .btn-upload {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--navy-mid); color: #fff; border: none; border-radius: 8px;
+    padding: 9px 16px; font-size: 13px; font-weight: 650; font-family: inherit; cursor: pointer;
+  }
+  .btn-upload:hover { background: var(--navy); }
+  .data-info { font-size: 12.5px; color: var(--muted); flex: 1; min-width: 220px; }
+  .data-info b { color: var(--text-secondary); }
+  .data-info.ok { color: var(--green-dark); }
+  .data-info.err { color: var(--red); font-weight: 600; }
+  .data-info.busy { color: var(--amber); font-weight: 600; }
+
+  /* Pages */
+  .page { display: none; flex: 1; padding: 24px 28px 56px; max-width: 1440px; margin: 0 auto; width: 100%; }
+  .page.active { display: block; }
+
+  h2.section-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.02em; }
+  .section-sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; line-height: 1.55; max-width: 920px; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); margin-bottom: 20px; overflow: hidden; }
+  .card .card-head {
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; background: #fafbfc;
+  }
+  .card .card-head h3 { margin: 0; font-size: 13.5px; font-weight: 650; }
+  .card .card-body { padding: 16px 18px; overflow-x: auto; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead th {
+    background: #f1f5f9; border: 1px solid var(--line); padding: 9px 8px; text-align: center;
+    font-weight: 650; color: var(--text-secondary); font-size: 11.5px; letter-spacing: 0.02em; text-transform: uppercase;
+  }
+  tbody td { border: 1px solid var(--line); padding: 8px 8px; text-align: center; }
+  tbody td.name { text-align: left; font-weight: 600; vertical-align: middle; }
+  tr.total-row td { background: #e8eef8; font-weight: 700; color: var(--blue-dark); }
+  .auto-val { color: var(--blue); font-weight: 650; }
+  .loss-pos { color: var(--red); font-weight: 650; }
+  .loss-zero { color: var(--green-dark); font-weight: 650; }
+
+  input.cell-input, select.cell-input {
+    padding: 6px 8px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+    font-size: 12.5px; font-family: inherit; background: #fff; color: var(--text);
+  }
+  input.cell-input:focus, select.cell-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(30,58,138,.12); }
+  input.cell-input.wide { width: 140px; }
+
+  .btn {
+    border: none; border-radius: 7px; padding: 8px 15px; font-size: 12.5px; font-weight: 600;
+    font-family: inherit; cursor: pointer;
+  }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-primary:hover { background: var(--blue-dark); }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-green:hover { background: var(--green-dark); }
+  .btn-outline { background: #fff; color: var(--blue); border: 1px solid var(--line-strong); }
+  .btn-outline:hover { background: var(--blue-soft); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn:disabled { opacity: .6; cursor: not-allowed; }
+
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .toolbar .lbl { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+  .sync-status { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .sync-status.ok { color: var(--green-dark); font-weight: 600; }
+  .sync-status.err { color: var(--red); font-weight: 600; }
+  .sync-status.warn { color: var(--amber); font-weight: 600; }
+
+  .subhead { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 4px 0 10px; }
+
+  /* KPIs */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 12px; margin-bottom: 22px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow-sm); }
+  .kpi .val { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--blue); letter-spacing: -0.03em; line-height: 1.15; }
+  .kpi .lbl { font-size: 11.5px; color: var(--muted); margin-top: 4px; font-weight: 500; }
+
+  /* Model colours */
+  tr.model-superluxury td { background: #fef9c3; }
+  tr.model-delux td { background: #f3e8ff; }
+  tr.model-express td { background: #dbeafe; }
+  tr.model-other td { background: #f1f5f9; }
+  tr.model-a td { background: #dcfce7; }
+  tr.model-b td { background: #ffedd5; }
+  tr.model-c td { background: #fce7f3; }
+  tr.model-d td { background: #ccfbf1; }
+  tr.model-superluxury td.name { color: #854d0e; }
+  tr.model-delux td.name { color: #6b21a8; }
+  tr.model-express td.name { color: #1e3a8a; }
+
+  /* Route summary */
+  .rsv2-block { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); margin-bottom: 20px; overflow: hidden; }
+  .rsv2-block-head {
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px;
+  }
+  .rsv2-block-head h3 { margin: 0; font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--navy); letter-spacing: 0.02em; text-transform: uppercase; }
+  .rsv2-block-meta { font-size: 12.5px; color: var(--muted); font-weight: 550; }
+  .rsv2-block-meta b { color: var(--text-secondary); font-weight: 700; }
+  .rsv2-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.rsv2-table { min-width: 520px; }
+  table.rsv2-table thead th { background: var(--navy-mid); color: #e8eef8; border: 1px solid #0a1a3a; white-space: nowrap; }
+  table.rsv2-table tbody td { border: 1px solid var(--line-strong); padding: 7px 8px; white-space: nowrap; }
+  table.rsv2-table tbody td.rsv2-route { text-align: left; font-weight: 700; color: var(--navy); background: #f8fafc; }
+  table.rsv2-table tbody td.rsv2-bus { font-weight: 650; font-variant-numeric: tabular-nums; }
+  table.rsv2-table tbody td.rsv2-svc { text-align: left; font-weight: 550; color: var(--blue-dark); }
+  table.rsv2-table tbody td.rsv2-km { font-variant-numeric: tabular-nums; }
+  table.rsv2-table tbody td.rsv2-total { font-weight: 700; background: #f1f5f9; }
+  table.rsv2-table tr.rsv2-foot td { background: #e8eef8; font-weight: 750; color: var(--blue-dark); border-top: 2px solid var(--navy-mid); }
+  .rsv2-grand { background: var(--card); border: 1.5px solid var(--navy-mid); border-radius: var(--radius); padding: 16px 18px; margin: 8px 0 24px; box-shadow: var(--shadow); }
+  .rsv2-grand h3 { margin: 0 0 12px; font-size: 14px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.04em; }
+  .rsv2-grand-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
+  .rsv2-grand-item .gval { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--blue); }
+  .rsv2-grand-item .glbl { font-size: 11px; color: var(--muted); font-weight: 550; margin-top: 2px; }
+
+  /* Charts */
+  .rsv2-analytics { margin-bottom: 22px; width: 100%; overflow: hidden; }
+  .rsv2-analytics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .rsv2-chart-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 14px 16px 18px; min-width: 0; overflow: hidden; }
+  .rsv2-chart-card.rsv2-chart-wide { grid-column: 1 / -1; }
+  .rsv2-chart-card h4 { margin: 0 0 10px; font-size: 13px; font-weight: 650; }
+  .rsv2-chart-hint { font-size: 11.5px; color: var(--muted); margin: -4px 0 10px; }
+  .rsv2-chart-wrap { position: relative; width: 100%; height: 260px; }
+
+  /* Rich chart tooltip (shows full bus / service / driver lists without cutting off) */
+  #chartTip {
+    position: absolute; z-index: 999; pointer-events: none; opacity: 0;
+    transition: opacity .12s ease;
+    background: rgba(9, 18, 38, 0.97); color: #eef2fb;
+    border: 1px solid rgba(255,255,255,.14); border-radius: 9px;
+    padding: 10px 12px; font-family: var(--font); font-size: 11.8px; line-height: 1.5;
+    box-shadow: 0 12px 34px rgba(0,0,0,.34); max-width: min(520px, 92vw);
+  }
+  #chartTip .tip-title { font-weight: 700; font-size: 12.5px; color: #fff; margin-bottom: 3px; }
+  #chartTip .tip-body { font-weight: 600; color: #cfe0ff; margin-bottom: 6px; }
+  #chartTip .tip-list { margin: 0; padding: 0; list-style: none; columns: 2; column-gap: 18px; }
+  #chartTip .tip-list.one-col { columns: 1; }
+  #chartTip .tip-list li { break-inside: avoid; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  #chartTip .tip-more { margin-top: 5px; color: #9fb0d6; font-style: italic; }
+
+  /* Empty state */
+  .empty-state { text-align: center; padding: 44px 20px; color: var(--muted); line-height: 1.7; }
+  .empty-state h3 { margin: 0 0 6px; font-family: var(--font-display); font-size: 17px; color: var(--text); }
+  .empty-state code { background: var(--bg-subtle); padding: 1px 6px; border-radius: 4px; font-size: 12px; }
+
+  /* ========== Bus / Driver report ========== */
+  .search-panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+  .search-grid { display: flex; flex-wrap: wrap; gap: 14px 18px; align-items: flex-end; }
+  .search-field label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 5px; }
+  .search-field input[type="text"], .search-field select {
+    padding: 9px 12px; border: 1px solid var(--line-strong); border-radius: 7px; font-size: 13.5px; font-family: inherit; min-width: 220px; background: #fff;
+  }
+  .search-field input[type="text"]:focus, .search-field select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(30,58,138,.12); }
+  .seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; }
+  .seg label { margin: 0; padding: 9px 16px; font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--text-secondary); cursor: pointer; background: #fff; }
+  .seg input { display: none; }
+  .seg input:checked + span { color: #fff; }
+  .seg label:has(input:checked) { background: var(--blue); color: #fff; }
+
+  .rep-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: flex-start; margin-bottom: 14px; }
+  .rep-head h3 { margin: 0 0 3px; font-family: var(--font-display); font-size: 20px; color: var(--navy); letter-spacing: -0.02em; }
+  .rep-head .rep-sub { font-size: 12.5px; color: var(--muted); }
+  .rep-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .rep-note { background: var(--amber-soft); color: #78350f; border: 1px solid #f0d78a; border-radius: 8px; padding: 9px 12px; font-size: 12.5px; margin-bottom: 14px; }
+  .rep-section { margin-bottom: 20px; }
+  .rep-section h4 { margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--navy); }
+  .tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  .tbl-wrap table { min-width: 560px; }
+  .tbl-wrap thead th { white-space: nowrap; position: sticky; top: 0; }
+  .tbl-wrap tbody td { white-space: nowrap; }
+  .tbl-wrap tbody td.l { text-align: left; }
+  .tbl-wrap tbody tr:nth-child(even) td { background: #fafbfc; }
+  .tbl-wrap.tall { max-height: 520px; overflow-y: auto; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { background: var(--red-soft); color: #991b1b; border-radius: 20px; padding: 3px 11px; font-size: 12px; font-weight: 600; }
+  .chip.ok { background: var(--green-soft); color: var(--green-dark); }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  @media (max-width: 900px) {
+    .rsv2-analytics-grid, .two-col { grid-template-columns: 1fr; }
+    .rsv2-chart-wrap { height: 240px; }
+    #chartTip .tip-list { columns: 1; }
+  }
+  @media (max-width: 720px) {
+    .login-card { margin: 0 16px; }
+    #loginScreen { justify-content: center; }
+    .page { padding: 14px 12px 40px; }
+    .data-bar { padding: 12px; }
+    .navtabs { padding: 0 6px; overflow-x: auto; flex-wrap: nowrap; }
+    .navtab { padding: 12px 12px; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
+    .navtabs-right { margin-left: 8px; flex-shrink: 0; }
+    .navtabs-right #whoami { display: none; }
+    .kpis { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .kpi .val { font-size: 18px; }
+    .search-field input[type="text"], .search-field select { min-width: 0; width: 100%; }
+    .search-field { flex: 1 1 100%; }
+    table { font-size: 11.5px; }
+  }
+
+  /* ========== PRINT ========== */
+  @media print {
+    body * { visibility: hidden !important; }
+    body[data-print="routes"] #page-routes, body[data-print="routes"] #page-routes *,
+    body[data-print="depot"] #page-dashboard, body[data-print="depot"] #page-dashboard *,
+    body[data-print="report"] #reportOut, body[data-print="report"] #reportOut * { visibility: visible !important; }
+    body[data-print="routes"] #page-routes, body[data-print="depot"] #page-dashboard, body[data-print="report"] #reportOut {
+      display: block !important; position: absolute; left: 0; top: 0; width: 100%; padding: 8mm; margin: 0; max-width: none;
+    }
+    body[data-print="depot"] #page-dashboard .toolbar { display: none !important; }
+    #chartTip { display: none !important; }
+    .toolbar, .rep-actions { display: none !important; }
+    .rsv2-block { box-shadow: none; border: 1px solid #000; page-break-inside: avoid; margin-bottom: 10mm; }
+    .rsv2-chart-card, .kpi, .card { page-break-inside: avoid; }
+    .rsv2-analytics-grid { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6mm; }
+    .rsv2-chart-wrap { height: 62mm; }
+    table.rsv2-table thead th, thead th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .kpi .val, tr.total-row td, .loss-pos, .loss-zero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .tbl-wrap.tall { max-height: none; overflow: visible; }
+    @page { size: A4 landscape; margin: 10mm; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN SCREEN ================= -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-brand-mark">CE</div>
+      <h2>Chakra E-Trans</h2>
+    </div>
+    <div class="tag">Karimnagar Depot · Boundless Journeys, Embracing All</div>
+    <form id="loginForm">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="Enter username" autocomplete="username">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password">
+      <button type="submit">Sign In</button>
+      <div class="login-err" id="loginErr"></div>
+    </form>
+    <div class="login-hint">Default login: <b>admin</b> / <b>chakra123</b> — change this in index.html (search for CREDENTIALS).</div>
+  </div>
+</div>
+
+<!-- ================= APP SHELL ================= -->
+<div id="app">
+
+  <div id="topBanner">
+    <img src="logo.png" alt="Chakra E-Trans logo" class="banner-logo" onerror="this.parentNode.style.display='none'">
+  </div>
+
+  <div class="navtabs" id="navtabs">
+    <div class="navtab active" data-page="dashboard">Depot Summary</div>
+    <div class="navtab" data-page="routes">Route Summary</div>
+    <div class="navtab" data-page="search">Bus / Driver Report</div>
+    <div class="navtabs-right">
+      <span id="whoami"></span>
+      <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <!-- Excel upload bar (visible on every tab) -->
+  <div class="data-bar" id="dataBar">
+    <input type="file" id="excelInput" accept=".xlsx,.xlsm,.xls,.csv" multiple style="display:none">
+    <button type="button" class="btn-upload" id="uploadBtn">📂 Upload DOR Excel</button>
+    <span class="data-info" id="dataInfo">No file loaded. Upload the DOR Excel (.xlsx / .xls / .csv) — you can also drag &amp; drop it here.</span>
+  </div>
+
+  <!-- ---------- DEPOT SUMMARY ---------- -->
+  <div class="page active" id="page-dashboard">
+    <div class="toolbar">
+      <span class="lbl">Date:</span>
+      <button type="button" class="btn btn-outline btn-sm" id="prevDateBtn" title="Previous date in file">◀</button>
+      <input type="date" id="summaryDate" class="cell-input wide">
+      <button type="button" class="btn btn-outline btn-sm" id="nextDateBtn" title="Next date in file">▶</button>
+      <button type="button" class="btn btn-outline btn-sm" id="depotPrintBtn">🖨 Print Depot Summary</button>
+      <button type="button" class="btn btn-outline btn-sm" id="depotCsvBtn">⬇ Export CSV</button>
+      <span class="sync-status" id="summaryStatus"></span>
+    </div>
+
+    <div class="kpis" id="kpiRow"></div>
+
+    <div class="subhead">Operations Analytics</div>
+    <div class="rsv2-analytics">
+      <div class="rsv2-analytics-grid">
+        <div class="rsv2-chart-card"><h4>Scheduled vs Operated KMs</h4><div class="rsv2-chart-wrap"><canvas id="rsv2ChartKmCompare"></canvas></div></div>
+        <div class="rsv2-chart-card"><h4>Route-wise Total KMs</h4><div class="rsv2-chart-wrap"><canvas id="rsv2ChartRouteKm"></canvas></div></div>
+        <div class="rsv2-chart-card"><h4>Service Operation Status</h4><div class="rsv2-chart-hint">Hover a slice to see the bus / service / driver of every service in it.</div><div class="rsv2-chart-wrap"><canvas id="rsv2ChartServiceStatus"></canvas></div></div>
+        <div class="rsv2-chart-card"><h4>Model-wise Buses / Services</h4><div class="rsv2-chart-wrap"><canvas id="rsv2ChartModelFleet"></canvas></div></div>
+        <div class="rsv2-chart-card rsv2-chart-wide"><h4>Reasons for Service Loss</h4><div class="rsv2-chart-hint">Hover a bar to see the bus number, service no and driver ID behind each loss.</div><div class="rsv2-chart-wrap"><canvas id="chartReason"></canvas></div></div>
+        <div class="rsv2-chart-card rsv2-chart-wide"><h4>Bus Activity (by Bus Number)</h4><div class="rsv2-chart-wrap"><canvas id="chartBusByNumber"></canvas></div></div>
+        <div class="rsv2-chart-card rsv2-chart-wide"><h4>Bus Activity — buses moving per hour</h4><div class="rsv2-chart-hint">Hover a point for the full list of bus numbers in that hour; click a point to pin the list below.</div><div class="rsv2-chart-wrap"><canvas id="chartTimeline"></canvas></div><div id="timelineDetail"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3>Shift-wise Summary</h3>
+        <span style="font-size:11.5px;color:var(--muted);">For the date selected above</span>
+      </div>
+      <div class="card-body"><table id="depotTable"></table></div>
+    </div>
+  </div>
+
+  <!-- ---------- ROUTE SUMMARY ---------- -->
+  <div class="page" id="page-routes">
+    <div class="toolbar">
+      <span class="lbl">Date:</span>
+      <button type="button" class="btn btn-outline btn-sm" id="prevDateBtn2" title="Previous date in file">◀</button>
+      <input type="date" id="routesDate" class="cell-input wide">
+      <button type="button" class="btn btn-outline btn-sm" id="nextDateBtn2" title="Next date in file">▶</button>
+      <button class="btn btn-outline btn-sm" id="rsv2PrintBtn" type="button">🖨 Print Route Summary</button>
+      <button class="btn btn-outline btn-sm" id="rsv2CsvBtn" type="button">⬇ Export CSV</button>
+      <span class="sync-status" id="routesStatus"></span>
+    </div>
+    <div id="routesArea"></div>
+  </div>
+
+  <!-- ---------- BUS / DRIVER MONTH REPORT ---------- -->
+  <div class="page" id="page-search">
+    <h2 class="section-title">Bus / Driver Month Report</h2>
+    <div class="section-sub">Search by <b>bus number</b>, <b>driver ID</b> or <b>service</b> to get the complete duty report for a month, built from the uploaded Excel file.</div>
+
+    <div class="search-panel">
+      <div class="search-grid">
+        <div class="search-field">
+          <label>Search by</label>
+          <div class="seg">
+            <label><input type="radio" name="srchType" value="bus" checked><span>Bus Number</span></label>
+            <label><input type="radio" name="srchType" value="driver"><span>Driver ID</span></label>
+            <label><input type="radio" name="srchType" value="service"><span>Service</span></label>
+          </div>
+        </div>
+        <div class="search-field">
+          <label id="srchLabel">Bus number</label>
+          <input type="text" id="srchInput" list="srchList" placeholder="e.g. 1124" autocomplete="off">
+          <datalist id="srchList"></datalist>
+          <select id="srchService" style="display:none;padding:9px 12px;border:1px solid var(--line-strong);border-radius:7px;font-size:13.5px;font-family:inherit;min-width:280px;background:#fff;">
+            <option value="">Upload a file first</option>
+          </select>
+        </div>
+        <div class="search-field">
+          <label>Month</label>
+          <select id="srchMonth"><option value="">Upload a file first</option></select>
+        </div>
+        <div class="search-field">
+          <button type="button" class="btn btn-primary" id="srchGo">Generate Report</button>
+        </div>
+      </div>
+      <div class="sync-status" id="srchStatus" style="margin-top:10px;"></div>
+    </div>
+
+    <div id="reportOut"></div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+   CONFIG
+   ========================================================================== */
+const CREDENTIALS = { admin: 'chakra123' };
+const FIXED_TOTAL_FLEET = 104;
+
+/* Column aliases — the Excel header row is matched by name (case / spacing / punctuation
+   ignored), so the columns can be in any order. "=" prefix means exact match only. */
+const FIELD_ALIASES = {
+  date:       ['dateddmmyyyy','dateddmmyy','date','=dateofduty','=dutydate'],
+  bus:        ['busnowithfullregistration','busnumber','busno','=bus','=busregistration','=registrationno'],
+  driverId:   ['driveridbadgeno','driverid','badgeno','=employeeid','=empid'],
+  driverName: ['drivername','nameofdriver','=driver','=name','=staffname'],
+  route:      ['enroute','routename','=route','=routes'],
+  routeNo:    ['routeno','serviceno','=service'],
+  model:      ['busmodel','bustype','=model'],
+  shift:      ['=shift'],
+  duty:       ['=duty'],
+  schKm:      ['schedulekm','scheduledkm','schkm'],
+  actKm:      ['actroutekm','actualroutekm','operatedkm','actualkm'],
+  kmLoss:     ['routekmloss','kmloss','losskm'],
+  schTrip:    ['scheduletrip','scheduledtrip','schtrip'],
+  actTrip:    ['actualtrip','operatedtrip'],
+  missTrip:   ['misstrip','losstrip'],
+  start:      ['actualstarttimehhmm','actualstarttime','starttime'],
+  end:        ['actualendtimehhmm','actualendtime','endtime'],
+  odoDiff:    ['odometerdiffkmba','odometerdiffkm','odokm'],
+  diff:       ['diffrence','difference'],
+  remarks:    ['=remarks','=remark','logsheetremarks'],
+  reason:     ['reasonforkilometerloss','reasonforloss'],
+  acct:       ['accountresponsible','biningforreson']   /* "Bining For Reson KM Loss" = responsible bin (JBM/Maintenance, LATE/ARRIVAL, …) */
+};
+
+/* ==========================================================================
+   STATE + HELPERS
+   ========================================================================== */
+const $ = id => document.getElementById(id);
+let records = [];            // every row of the uploaded file (raw values kept in .raw)
+let dateIndex = new Map();   // YYYY-MM-DD -> records[]
+let sortedDates = [];
+let monthList = [];          // ['2026-09', ...]
+let todaysRows = [];
+let rsv2LastModel = null;
+let lastReport = null;
+let lastDepotTotals = null;
+const chartInst = {};
+
+function esc(s){
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function pad2(n){ return String(n).padStart(2,'0'); }
+function num(v){
+  if(typeof v === 'number') return isFinite(v) ? v : 0;
+  const n = Number(String(v == null ? '' : v).replace(/,/g,'').trim());
+  return isNaN(n) ? 0 : n;
+}
+function fmt(n){ return Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 }); }
+function lossClass(loss){ return loss > 0 ? 'loss-pos' : 'loss-zero'; }
+function localDateISO(){ const d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate()); }
+function isoToDmy(iso){ const p = String(iso||'').split('-'); return p.length === 3 ? p[2] + '-' + p[1] + '-' + p[0] : String(iso||''); }
+function dayName(iso){ return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(iso + 'T00:00:00Z').getUTCDay()]; }
+function monthLabel(key){
+  const p = key.split('-');
+  return ['January','February','March','April','May','June','July','August','September','October','November','December'][Number(p[1])-1] + ' ' + p[0];
+}
+function normId(v){ return String(v == null ? '' : v).toLowerCase().replace(/[\s\-_.\/]+/g,''); }
+function setText(id, state, text){
+  const el = $(id); if(!el) return;
+  el.textContent = text || '';
+  el.className = (el.classList.contains('data-info') ? 'data-info' : 'sync-status') + (state ? ' ' + state : '');
+}
+
+/* ---------- cell parsers (Excel serials, Date objects and text) ---------- */
+function isoFromParts(y, m, d){
+  y = Number(y); m = Number(m); d = Number(d);
+  if(y < 100) y += 2000;
+  if(!(y >= 1990 && y <= 2100 && m >= 1 && m <= 12 && d >= 1 && d <= 31)) return '';
+  return y + '-' + pad2(m) + '-' + pad2(d);
+}
+function parseDateCell(v){
+  if(v == null || v === '') return '';
+  if(v instanceof Date && !isNaN(v)){
+    const d = new Date(v.getTime() + 12*3600*1000);
+    return isoFromParts(d.getFullYear(), d.getMonth()+1, d.getDate());
+  }
+  if(typeof v === 'number'){
+    if(v > 20000 && v < 80000){
+      const d = new Date(Date.UTC(1899, 11, 30) + Math.floor(v) * 86400000);
+      return isoFromParts(d.getUTCFullYear(), d.getUTCMonth()+1, d.getUTCDate());
+    }
+    return '';
+  }
+  const s = String(v).trim();
+  if(!s) return '';
+  let m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+  if(m) return isoFromParts(m[1], m[2], m[3]);
+  m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/);
+  if(m) return isoFromParts(m[3], m[2], m[1]);           // dd-mm-yyyy
+  m = s.match(/^(\d{1,2})[-\s\/]([A-Za-z]{3,9})[-\s\/,]*(\d{2,4})/);
+  if(m){
+    const mi = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].indexOf(m[2].slice(0,3).toLowerCase());
+    if(mi >= 0) return isoFromParts(m[3], mi+1, m[1]);
+  }
+  if(/^\d+(\.\d+)?$/.test(s)) return parseDateCell(Number(s));
+  return '';
+}
+function parseTimeCell(v){
+  if(v == null || v === '') return '';
+  if(v instanceof Date && !isNaN(v)){
+    const t = new Date(v.getTime() + 30000);
+    return pad2(t.getHours()) + ':' + pad2(t.getMinutes());
+  }
+  if(typeof v === 'number'){
+    const frac = v - Math.floor(v);
+    if(v < 1 || frac > 0){
+      const mins = Math.round(frac * 1440) % 1440;
+      return pad2(Math.floor(mins/60)) + ':' + pad2(mins % 60);
+    }
+    return '';
+  }
+  const s = String(v).trim();
+  const m = s.match(/(\d{1,2})\s*[:.]\s*(\d{2})/);
+  if(m) return pad2(parseInt(m[1],10)) + ':' + m[2];
+  if(/^\d{1,2}$/.test(s)) return pad2(parseInt(s,10)) + ':00';
+  return s;
+}
+function startMinutes(t){
+  const m = String(t || '').match(/^(\d{1,2}):(\d{2})/);
+  if(!m) return null;
+  const h = parseInt(m[1],10), mi = parseInt(m[2],10);
+  if(h > 23 || mi > 59) return null;
+  return h * 60 + mi;
+}
+
+/* ==========================================================================
+   LOGIN
+   ========================================================================== */
+$('loginForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const u = $('loginUser').value.trim(), p = $('loginPass').value;
+  if(CREDENTIALS[u] && CREDENTIALS[u] === p){
+    sessionStorage.setItem('chakra_session', u);
+    $('loginErr').textContent = '';
+    showApp(u);
+  } else {
+    $('loginErr').textContent = 'Invalid username or password.';
+  }
+});
+$('logoutBtn').addEventListener('click', function(){ sessionStorage.removeItem('chakra_session'); location.reload(); });
+function showApp(username){
+  $('loginScreen').style.display = 'none';
+  $('app').style.display = 'flex';
+  $('whoami').textContent = 'Signed in as ' + username;
+  renderAll();
+}
+(function(){ const s = sessionStorage.getItem('chakra_session'); if(s && CREDENTIALS[s]) showApp(s); })();
+
+/* ==========================================================================
+   NAV
+   ========================================================================== */
+document.querySelectorAll('.navtab').forEach(tab => {
+  tab.addEventListener('click', function(){
+    document.querySelectorAll('.navtab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+    $('page-' + this.dataset.page).classList.add('active');
+    hideChartTip();
+    if(this.dataset.page === 'dashboard') renderDepot();   // redraw charts at correct size
+  });
+});
+
+/* ==========================================================================
+   EXCEL LOADING
+   ========================================================================== */
+function normHeader(h){ return String(h == null ? '' : h).toLowerCase().replace(/[^a-z0-9]/g,''); }
+
+function mapHeaders(headerRow){
+  const nh = headerRow.map(normHeader);
+  const used = new Set();
+  const map = {};
+  Object.keys(FIELD_ALIASES).forEach(field => {
+    const aliases = FIELD_ALIASES[field];
+    let idx = -1;
+    const free = i => i >= 0 && !used.has(i) && nh[i] !== '';
+    // 1) exact
+    for(const a of aliases){
+      const al = a.replace(/^=/, '');
+      const i = nh.findIndex((h, k) => h === al && free(k));
+      if(i >= 0){ idx = i; break; }
+    }
+    // 2) starts-with (non "=" aliases, length >= 6)
+    if(idx < 0){
+      for(const a of aliases){
+        if(a[0] === '=' || a.length < 6) continue;
+        const i = nh.findIndex((h, k) => h.indexOf(a) === 0 && free(k));
+        if(i >= 0){ idx = i; break; }
+      }
+    }
+    // 3) contains (non "=" aliases, length >= 8)
+    if(idx < 0){
+      for(const a of aliases){
+        if(a[0] === '=' || a.length < 8) continue;
+        const i = nh.findIndex((h, k) => h.indexOf(a) >= 0 && free(k));
+        if(i >= 0){ idx = i; break; }
+      }
+    }
+    if(idx >= 0){ map[field] = idx; used.add(idx); }
+  });
+  return map;
+}
+
+function parseSheetRows(aoa, fileName, sheetName){
+  let hdrIdx = -1, map = null;
+  for(let i = 0; i < Math.min(aoa.length, 20); i++){
+    const m = mapHeaders(aoa[i] || []);
+    if(m.date !== undefined && (m.bus !== undefined || m.driverId !== undefined) && Object.keys(m).length >= 4){
+      hdrIdx = i; map = m; break;
+    }
+  }
+  if(hdrIdx < 0) return null;
+
+  const headers = aoa[hdrIdx].map((h, i) => String(h == null || h === '' ? ('Column ' + (i+1)) : h).trim());
+  const out = [];
+  let skipped = 0;
+  const get = (row, f) => (map[f] === undefined ? '' : row[map[f]]);
+  const str = (row, f) => String(get(row, f) == null ? '' : get(row, f)).trim();
+
+  for(let r = hdrIdx + 1; r < aoa.length; r++){
+    const row = aoa[r];
+    if(!row || row.every(c => c === '' || c == null)) continue;
+    const iso = parseDateCell(get(row, 'date'));
+    if(!iso){ skipped++; continue; }      // no usable date → cannot be placed on any day
+    const raw = {};
+    headers.forEach((h, i) => { let k = h; while(k in raw) k += ' '; raw[k] = row[i]; });
+    out.push({
+      raw: raw, file: fileName, sheet: sheetName, rowNo: r + 1,
+      iso: iso,
+      bus: str(row,'bus'),
+      driverId: str(row,'driverId'),
+      driverName: str(row,'driverName'),
+      route: str(row,'route'),
+      routeNo: str(row,'routeNo'),
+      model: str(row,'model'),
+      shift: str(row,'shift'),
+      duty: str(row,'duty'),
+      schKm: num(get(row,'schKm')),
+      actKm: num(get(row,'actKm')),
+      kmLoss: num(get(row,'kmLoss')),
+      schTrip: num(get(row,'schTrip')),
+      actTrip: num(get(row,'actTrip')),
+      missTrip: num(get(row,'missTrip')),
+      start: parseTimeCell(get(row,'start')),
+      end: parseTimeCell(get(row,'end')),
+      odoDiff: num(get(row,'odoDiff')),
+      diff: num(get(row,'diff')),
+      remarks: str(row,'remarks'),
+      reason: str(row,'reason'),
+      acct: str(row,'acct')
+    });
+    /* Cancelled legs: the log sheet still shows Actual Trip = 1 / Miss Trip = 0 even when nothing ran
+       (Act. Route Km = 0). Normalise so cancelled legs count as lost, not operated. */
+    const rec = out[out.length - 1];
+    if(rec.actKm === 0 && rec.schKm > 0){
+      rec.missTrip = Math.max(rec.missTrip, rec.schTrip || 1);
+      rec.actTrip = 0;
+    }
+  }
+  return { records: out, skipped: skipped, rows: out.length, missing: Object.keys(FIELD_ALIASES).filter(f => map[f] === undefined) };
+}
+
+async function handleFiles(fileList){
+  const files = Array.from(fileList || []);
+  if(!files.length) return;
+  setText('dataInfo', 'busy', 'Reading ' + files.map(f => f.name).join(', ') + '…');
+  await new Promise(r => setTimeout(r, 30));
+
+  const all = [];
+  const notes = [];
+  let skipped = 0;
+  for(const f of files){
+    try{
+      let wb;
+      if(/\.csv$/i.test(f.name)){
+        wb = XLSX.read(await f.text(), { type: 'string', raw: true });
+      } else {
+        wb = XLSX.read(await f.arrayBuffer(), { type: 'array', cellDates: false });
+      }
+      let found = false;
+      wb.SheetNames.forEach(sn => {
+        const aoa = XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, raw: true, defval: '' });
+        const res = parseSheetRows(aoa, f.name, sn);
+        if(!res) return;
+        found = true;
+        for(let i = 0; i < res.records.length; i++) all.push(res.records[i]);
+        skipped += res.skipped;
+        notes.push(sn + ': ' + res.rows + ' rows');
+      });
+      if(!found) notes.push(f.name + ': no DOR table found (needs Date and Bus No / Driver ID columns)');
+    }catch(err){
+      console.error(err);
+      notes.push(f.name + ': ' + (err.message || err));
+    }
+  }
+
+  if(!all.length){
+    setText('dataInfo', 'err', 'Could not read any DOR rows. ' + notes.join(' · '));
+    return;
+  }
+
+  records = all;
+  buildIndexes();
+  const first = sortedDates[0], last = sortedDates[sortedDates.length - 1];
+  setText('dataInfo', 'ok',
+    '✓ Loaded ' + records.length.toLocaleString() + ' rows · ' + sortedDates.length + ' dates (' + isoToDmy(first) + ' to ' + isoToDmy(last) + ') · ' +
+    monthList.length + ' month' + (monthList.length === 1 ? '' : 's') +
+    (skipped ? ' · ' + skipped + ' rows without a valid date were not placed on any day' : '') +
+    ' · ' + notes.join(', '));
+  // default to the latest date in the file
+  syncDateInputs(last);
+  renderAll();
+}
+
+function buildIndexes(){
+  dateIndex = new Map();
+  const buses = new Set(), drivers = new Map(), months = new Set();
+  records.forEach(r => {
+    if(!dateIndex.has(r.iso)) dateIndex.set(r.iso, []);
+    dateIndex.get(r.iso).push(r);
+    months.add(r.iso.slice(0,7));
+  });
+  sortedDates = Array.from(dateIndex.keys()).sort();
+  monthList = Array.from(months).sort();
+  refreshSearchControls();
+}
+
+/* upload button / input / drag & drop */
+$('uploadBtn').addEventListener('click', () => $('excelInput').click());
+$('excelInput').addEventListener('change', function(){ handleFiles(this.files); this.value = ''; });
+['dragenter','dragover'].forEach(ev => $('dataBar').addEventListener(ev, e => { e.preventDefault(); $('dataBar').classList.add('drag'); }));
+['dragleave','drop'].forEach(ev => $('dataBar').addEventListener(ev, e => { e.preventDefault(); $('dataBar').classList.remove('drag'); }));
+$('dataBar').addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+
+/* ==========================================================================
+   DATE CONTROLS (data is already in memory — nothing is fetched)
+   ========================================================================== */
+function getActiveDate(){
+  const raw = $('summaryDate').value || $('routesDate').value || '';
+  return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : (sortedDates.length ? sortedDates[sortedDates.length-1] : localDateISO());
+}
+function syncDateInputs(v){
+  ['summaryDate','routesDate'].forEach(id => {
+    const el = $(id);
+    el.value = v;
+    if(sortedDates.length){ el.min = sortedDates[0]; el.max = sortedDates[sortedDates.length-1]; }
+  });
+}
+function onDateChange(v){
+  if(!v) return;
+  syncDateInputs(v);
+  renderAll();
+}
+$('summaryDate').addEventListener('change', function(){ onDateChange(this.value); });
+$('routesDate').addEventListener('change', function(){ onDateChange(this.value); });
+function stepDate(dir){
+  if(!sortedDates.length) return;
+  const cur = getActiveDate();
+  let target = null;
+  if(dir < 0){ for(let i = sortedDates.length-1; i >= 0; i--) if(sortedDates[i] < cur){ target = sortedDates[i]; break; } }
+  else { for(let i = 0; i < sortedDates.length; i++) if(sortedDates[i] > cur){ target = sortedDates[i]; break; } }
+  if(target) onDateChange(target);
+}
+['prevDateBtn','prevDateBtn2'].forEach(id => $(id).addEventListener('click', () => stepDate(-1)));
+['nextDateBtn','nextDateBtn2'].forEach(id => $(id).addEventListener('click', () => stepDate(1)));
+
+function dateStatusText(){
+  const d = getActiveDate();
+  if(!records.length) return ['', ''];
+  if(!todaysRows.length){
+    return ['warn', '⚠ No DOR rows for ' + isoToDmy(d) + ' in the uploaded file (file covers ' +
+      isoToDmy(sortedDates[0]) + ' to ' + isoToDmy(sortedDates[sortedDates.length-1]) + ').'];
+  }
+  return ['ok', '✓ ' + todaysRows.length + ' DOR entr' + (todaysRows.length === 1 ? 'y' : 'ies') + ' for ' + isoToDmy(d)];
+}
+
+function renderAll(){
+  todaysRows = dateIndex.get(getActiveDate()) || [];
+  const st = dateStatusText();
+  setText('summaryStatus', st[0], st[1]);
+  setText('routesStatus', st[0], st[1]);
+  renderDepot();
+  renderRoutes();
+}
+
+function emptyStateHtml(){
+  return '<div class="card"><div class="card-body"><div class="empty-state">' +
+    '<h3>Upload the DOR Excel file to begin</h3>' +
+    'Click <b>Upload DOR Excel</b> above (or drop the file on the bar).<br>' +
+    'The first sheet row with headers such as <code>Date (dd/mm/yy)</code>, <code>Bus No.</code>, ' +
+    '<code>Driver ID</code>, <code>Routes</code>, <code>Schedule Km</code>, <code>Act. Route Km</code> is detected automatically.' +
+    '</div></div></div>';
+}
+
+/* ==========================================================================
+   RICH CHART TOOLTIP
+   Chart.js clips long tooltips, so tooltips are drawn as an HTML box that can
+   hold the complete bus / service / driver list (2 columns, nothing cut off).
+   ========================================================================== */
+function tipEl(){
+  let el = $('chartTip');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'chartTip';
+    document.body.appendChild(el);
+  }
+  return el;
+}
+function hideChartTip(){ const el = $('chartTip'); if(el) el.style.opacity = 0; }
+
+function richTooltip(context){
+  const chart = context.chart, tt = context.tooltip, el = tipEl();
+  if(tt.opacity === 0){ el.style.opacity = 0; return; }
+
+  const title = (tt.title || []).join(' ');
+  const body = (tt.body || []).map(b => (b.lines || []).join(' ')).filter(Boolean);
+  const after = (tt.afterBody || []).filter(Boolean);
+  const oneCol = after.length <= 6 || after.some(l => String(l).length > 44);
+
+  let html = '';
+  if(title) html += '<div class="tip-title">' + esc(title) + '</div>';
+  if(body.length) html += '<div class="tip-body">' + body.map(esc).join('<br>') + '</div>';
+  if(after.length){
+    html += '<ul class="tip-list' + (oneCol ? ' one-col' : '') + '">' +
+      after.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul>';
+  }
+  el.innerHTML = html;
+
+  const box = chart.canvas.getBoundingClientRect();
+  el.style.opacity = 1;
+  // measure, then keep the box inside the window
+  const w = el.offsetWidth, h = el.offsetHeight;
+  let left = box.left + window.scrollX + tt.caretX + 14;
+  let top = box.top + window.scrollY + tt.caretY - h / 2;
+  if(left + w > window.scrollX + window.innerWidth - 8) left = box.left + window.scrollX + tt.caretX - w - 14;
+  if(left < window.scrollX + 8) left = window.scrollX + 8;
+  if(top < window.scrollY + 8) top = window.scrollY + 8;
+  if(top + h > window.scrollY + window.innerHeight - 8) top = window.scrollY + window.innerHeight - h - 8;
+  el.style.left = left + 'px';
+  el.style.top = top + 'px';
+}
+const RICH_TOOLTIP = { enabled: false, external: richTooltip };
+
+/* one line of detail for a duty row: bus · service · driver */
+function rowDetailLine(r){
+  const parts = [];
+  parts.push('Bus ' + (r.bus || '—'));
+  const svc = rsv2ServiceNo(r);
+  parts.push('Svc ' + (svc || '—'));
+  parts.push('Drv ' + (r.driverId || r.driverName || '—'));
+  if(r.start) parts.push(r.start);
+  return parts.join(' · ');
+}
+function detailLines(rows, cap){
+  const max = cap || 60;
+  const lines = rows.slice(0, max).map((r, i) => (i + 1) + '. ' + rowDetailLine(r));
+  if(rows.length > max) lines.push('… +' + (rows.length - max) + ' more');
+  return lines;
+}
+
+/* ==========================================================================
+   DEPOT SUMMARY
+   ========================================================================== */
+function modelColorClass(model){
+  const m = String(model || '').toLowerCase();
+  if(m.includes('super')) return 'model-superluxury';
+  if(m.includes('delux')) return 'model-delux';
+  if(m.includes('express')) return 'model-express';
+  if(m.includes('unclass') || !m.trim()) return 'model-other';
+  const palette = ['model-a','model-b','model-c','model-d'];
+  let hash = 0;
+  for(let i = 0; i < m.length; i++) hash = (hash * 31 + m.charCodeAt(i)) >>> 0;
+  return palette[hash % palette.length];
+}
+
+function renderDepot(){
+  const rows = todaysRows;
+  const table = $('depotTable');
+
+  if(!records.length || !rows.length){
+    table.innerHTML = '<tbody><tr><td colspan="10" style="text-align:left;color:var(--muted);padding:16px;">' +
+      (records.length ? 'No DOR data for ' + isoToDmy(getActiveDate()) + '. Pick another date.' : 'Upload the DOR Excel file to see the shift-wise summary.') +
+      '</td></tr></tbody>';
+  }
+
+  const groups = {};
+  rows.forEach(r => {
+    const model = r.model || 'Unclassified';
+    const shift = r.shift || 'General';
+    const route = r.route || 'Unassigned';
+    const key = model + '|' + shift + '|' + route;
+    (groups[key] = groups[key] || { model, shift, route, rows: [] }).rows.push(r);
+  });
+  const groupList = Object.values(groups).sort((a,b) => a.model.localeCompare(b.model) || a.route.localeCompare(b.route) || a.shift.localeCompare(b.shift));
+  const modelOrder = [], modelBuckets = {};
+  groupList.forEach(g => {
+    if(!modelBuckets[g.model]){ modelBuckets[g.model] = []; modelOrder.push(g.model); }
+    modelBuckets[g.model].push(g);
+  });
+
+  let totalFleet = 0, totalSch = 0, totalOps = 0, totalSchKms = 0, totalOprKms = 0;
+  let totalTripsOps = 0, totalTripsLoss = 0, totalOdoKm = 0, totalOdoDiff = 0;
+  const totalDrivers = new Set(), totalBuses = new Set();
+  const csvRows = [];
+
+  let html = '<thead><tr><th>Model</th><th>Shift</th><th>Route</th><th>Fleet</th><th>Sch Services</th><th>Ops Services</th>' +
+    '<th>Sch Kms</th><th>Opr Kms</th><th>Loss Kms</th><th>Drivers</th></tr></thead><tbody>';
+
+  modelOrder.forEach(model => {
+    const bucket = modelBuckets[model];
+    const colorClass = modelColorClass(model);
+    bucket.forEach((g, idx) => {
+      const buses = new Set(g.rows.map(r => r.bus).filter(Boolean));
+      const drivers = new Set(g.rows.map(r => r.driverId).filter(Boolean));
+      const schKms = g.rows.reduce((s, r) => s + r.schKm, 0);
+      const oprKms = g.rows.reduce((s, r) => s + r.actKm, 0);
+      const ops = g.rows.filter(r => r.actTrip > 0).length;
+      const sch = g.rows.length;
+      const loss = schKms - oprKms;
+
+      totalFleet += buses.size; totalSch += sch; totalOps += ops;
+      totalSchKms += schKms; totalOprKms += oprKms;
+      drivers.forEach(d => totalDrivers.add(d));
+      buses.forEach(b => totalBuses.add(b));
+      g.rows.forEach(r => {
+        totalTripsOps += r.actTrip;
+        totalTripsLoss += r.missTrip;
+        totalOdoKm += r.odoDiff;
+        totalOdoDiff += r.diff;
+      });
+
+      csvRows.push([model, g.shift, g.route, buses.size, sch, ops, schKms, oprKms, loss, drivers.size]);
+
+      html += '<tr class="' + colorClass + '">';
+      if(idx === 0) html += '<td class="name" rowspan="' + bucket.length + '">' + esc(model) + '</td>';
+      html += '<td>' + esc(g.shift) + '</td><td>' + esc(g.route) + '</td>' +
+        '<td>' + buses.size + '</td><td>' + sch + '</td><td>' + ops + '</td>' +
+        '<td>' + fmt(schKms) + '</td><td class="auto-val">' + fmt(oprKms) + '</td>' +
+        '<td class="' + lossClass(loss) + '">' + fmt(loss) + '</td><td>' + drivers.size + '</td></tr>';
+    });
+  });
+
+  const totalLoss = totalSchKms - totalOprKms;
+  html += '<tr class="total-row"><td colspan="3">TOTAL</td><td>' + totalFleet + '</td><td>' + totalSch + '</td><td>' + totalOps + '</td>' +
+    '<td>' + fmt(totalSchKms) + '</td><td>' + fmt(totalOprKms) + '</td><td class="' + lossClass(totalLoss) + '">' + fmt(totalLoss) + '</td>' +
+    '<td>' + totalDrivers.size + '</td></tr></tbody>';
+  if(rows.length) table.innerHTML = html;
+
+  csvRows.push(['TOTAL','','', totalFleet, totalSch, totalOps, totalSchKms, totalOprKms, totalLoss, totalDrivers.size]);
+  lastDepotTotals = { csvRows: csvRows };
+
+  const odoDiffColor = totalOdoDiff > 0 ? '#c0392b' : '#177a45';
+  $('kpiRow').innerHTML =
+    '<div class="kpi"><div class="val">' + FIXED_TOTAL_FLEET + '</div><div class="lbl">Total Fleet</div></div>' +
+    '<div class="kpi"><div class="val">' + totalBuses.size + '</div><div class="lbl">Buses on Road</div></div>' +
+    '<div class="kpi"><div class="val">' + totalSch + '</div><div class="lbl">Scheduled Services</div></div>' +
+    '<div class="kpi"><div class="val">' + totalOps + '</div><div class="lbl">Operated Services</div></div>' +
+    '<div class="kpi"><div class="val">' + fmt(totalTripsOps) + '</div><div class="lbl">Operated Trips</div></div>' +
+    '<div class="kpi"><div class="val" style="color:' + (totalTripsLoss > 0 ? '#c0392b' : '#177a45') + '">' + fmt(totalTripsLoss) + '</div><div class="lbl">Loss Trips</div></div>' +
+    '<div class="kpi"><div class="val">' + fmt(totalSchKms) + '</div><div class="lbl">Scheduled KMs</div></div>' +
+    '<div class="kpi"><div class="val">' + fmt(totalOprKms) + '</div><div class="lbl">Operated KMs</div></div>' +
+    '<div class="kpi"><div class="val" style="color:' + (totalLoss > 0 ? '#c0392b' : '#177a45') + '">' + fmt(totalLoss) + '</div><div class="lbl">Loss KMs</div></div>' +
+    '<div class="kpi"><div class="val">' + fmt(totalOdoKm) + '</div><div class="lbl">Odo KMs</div></div>' +
+    '<div class="kpi"><div class="val" style="color:' + odoDiffColor + '">' + fmt(totalOdoDiff) + '</div><div class="lbl">Actual vs Odo Diff.</div></div>';
+
+  requestAnimationFrame(function(){
+    renderDepotCharts({ totalSchKms, totalOprKms, totalLoss, totalSch, totalOps });
+  });
+}
+
+/* ---------- charts ---------- */
+function destroyChart(id){
+  if(chartInst[id]){ try{ chartInst[id].destroy(); }catch(e){} delete chartInst[id]; }
+}
+function mkChart(id, cfg){
+  destroyChart(id);
+  const el = $(id);
+  if(!el || typeof Chart === 'undefined') return;
+  chartInst[id] = new Chart(el, cfg);
+}
+function rsv2ActKm(r){ return r.actKm > 0 ? r.actKm : r.schKm; }
+
+/* Loss reasons — keep the actual duty rows behind each reason so the tooltip
+   can show bus number / service no / driver ID instead of only a count. */
+function buildReasonSummaryFromRows(rows){
+  const map = {};
+  (rows || []).forEach(r => {
+    const cancelled = !!r.acct;
+    if(!(cancelled || r.actKm === 0 || r.kmLoss > 0 || r.missTrip > 0)) return;
+    let reason = r.reason || r.remarks;
+    if(!reason) reason = cancelled ? 'Cancelled / Authority' : 'Unspecified loss';
+    if(reason.length > 80) reason = reason.slice(0, 77) + '…';
+    if(!map[reason]) map[reason] = { reason: reason, count: 0, rows: [], lossKm: 0 };
+    map[reason].count += 1;
+    map[reason].rows.push(r);
+    map[reason].lossKm += Math.max(0, r.schKm - r.actKm);
+  });
+  return Object.keys(map).map(k => map[k]).sort((a,b) => b.count - a.count).slice(0, 15);
+}
+function buildBusActivityFromRows(rows){
+  const byBus = {};
+  (rows || []).forEach(r => {
+    if(!r.bus) return;
+    if(!byBus[r.bus]) byBus[r.bus] = { bus: r.bus, trips: 0, kms: 0, route: r.route, rows: [] };
+    byBus[r.bus].trips += r.actTrip > 0 ? r.actTrip : (r.actKm > 0 ? 1 : 0);
+    byBus[r.bus].kms += r.actKm;
+    byBus[r.bus].rows.push(r);
+  });
+  return Object.keys(byBus).map(k => byBus[k]).filter(b => b.trips > 0 || b.kms > 0)
+    .sort((a,b) => b.kms - a.kms || String(a.bus).localeCompare(String(b.bus)));
+}
+function buildBusHourActivityFromRows(rows){
+  const byHour = {};
+  for(let h = 0; h < 24; h++) byHour[h] = {};
+  (rows || []).forEach(r => {
+    if(!r.bus || !(r.actKm > 0 || r.actTrip > 0)) return;
+    const mins = startMinutes(r.start);
+    if(mins == null) return;
+    const hour = Math.floor(mins / 60);
+    if(!byHour[hour][r.bus]) byHour[hour][r.bus] = [];
+    byHour[hour][r.bus].push(r);
+  });
+  function entry(h){
+    const map = byHour[h] || {};
+    const buses = Object.keys(map).sort((a,b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
+    return {
+      hour: h,
+      buses: buses.length,
+      busList: buses.map(function(b){
+        const rs = map[b];
+        const svc = Array.from(new Set(rs.map(x => rsv2ServiceNo(x)).filter(Boolean))).join('/') || '—';
+        const drv = Array.from(new Set(rs.map(x => x.driverId || x.driverName).filter(Boolean))).join('/') || '—';
+        const times = Array.from(new Set(rs.map(x => x.start).filter(Boolean))).sort().join(', ');
+        return 'Bus ' + b + ' · Svc ' + svc + ' · Drv ' + drv + (times ? ' · ' + times : '');
+      })
+    };
+  }
+  const result = [];
+  for(let h = 0; h < 24; h++) if(Object.keys(byHour[h]).length) result.push(entry(h));
+  if(result.length && result.length < 8){
+    const full = [];
+    for(let h = result[0].hour; h <= result[result.length-1].hour; h++) full.push(entry(h));
+    return full;
+  }
+  return result;
+}
+
+function renderDepotCharts(t){
+  if(typeof Chart === 'undefined') return;
+  const rows = todaysRows || [];
+  const lostServices = Math.max(0, t.totalSch - t.totalOps);
+
+  mkChart('rsv2ChartKmCompare', {
+    type: 'bar',
+    data: { labels: ['Scheduled KMs','Operated KMs','Loss KMs'],
+      datasets: [{ data: [t.totalSchKms, t.totalOprKms, t.totalLoss], backgroundColor: ['#1e3a8a','#15803d','#b91c1c'], borderRadius: 6, maxBarThickness: 48 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { callback: v => Number(v).toLocaleString() } } } }
+  });
+
+  const routeKm = {};
+  rows.forEach(r => { const n = r.route || 'Unassigned'; routeKm[n] = (routeKm[n] || 0) + rsv2ActKm(r); });
+  const rLabels = Object.keys(routeKm).sort();
+  mkChart('rsv2ChartRouteKm', {
+    type: 'bar',
+    data: { labels: rLabels, datasets: [{ data: rLabels.map(l => routeKm[l]), backgroundColor: '#132b66', borderRadius: 6, maxBarThickness: 40 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { ticks: { maxRotation: 45, minRotation: 0, font: { size: 10 } } }, y: { beginAtZero: true, ticks: { callback: v => Number(v).toLocaleString() } } } }
+  });
+
+  /* ---- Service Operation Status: slice tooltip lists the services in it ---- */
+  const operatedRows = rows.filter(r => r.actTrip > 0);
+  const notOperatedRows = rows.filter(r => !(r.actTrip > 0));
+  const statusBuckets = [operatedRows, notOperatedRows];
+  mkChart('rsv2ChartServiceStatus', {
+    type: 'doughnut',
+    data: { labels: ['Operated Services','Not Operated / Lost'], datasets: [{ data: [t.totalOps, lostServices], backgroundColor: ['#15803d','#b91c1c'], borderWidth: 2, borderColor: '#fff' }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' }, tooltip: Object.assign({}, RICH_TOOLTIP, { callbacks: {
+        title: items => items.length ? items[0].label : '',
+        label: ctx => ctx.parsed + ' service' + (ctx.parsed === 1 ? '' : 's'),
+        afterBody: items => {
+          if(!items.length) return [];
+          const bucket = statusBuckets[items[0].dataIndex] || [];
+          const sorted = bucket.slice().sort((a,b) => (startMinutes(a.start) ?? 9999) - (startMinutes(b.start) ?? 9999));
+          return detailLines(sorted, 60);
+        }
+      } }) } }
+  });
+
+  const modelMap = {};
+  rows.forEach(r => {
+    const m = r.model || 'Unclassified';
+    if(!modelMap[m]) modelMap[m] = { buses: new Set(), services: 0 };
+    if(r.bus) modelMap[m].buses.add(r.bus);
+    modelMap[m].services += 1;
+  });
+  const mLabels = Object.keys(modelMap).sort();
+  mkChart('rsv2ChartModelFleet', {
+    type: 'bar',
+    data: { labels: mLabels, datasets: [
+      { label: 'Buses', data: mLabels.map(l => modelMap[l].buses.size), backgroundColor: '#1e3a8a', borderRadius: 4, maxBarThickness: 28 },
+      { label: 'Services', data: mLabels.map(l => modelMap[l].services), backgroundColor: '#a3b82e', borderRadius: 4, maxBarThickness: 28 } ] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } },
+      scales: { x: { ticks: { maxRotation: 40, font: { size: 10 } } }, y: { beginAtZero: true, ticks: { precision: 0 } } } }
+  });
+
+  /* ---- Reasons for Service Loss: tooltip shows bus / service / driver ---- */
+  const reasons = buildReasonSummaryFromRows(rows);
+  mkChart('chartReason', {
+    type: 'bar',
+    data: { labels: reasons.length ? reasons.map(r => r.reason.length > 60 ? r.reason.slice(0,57) + '…' : r.reason) : ['No loss reasons'],
+      datasets: [{ data: reasons.length ? reasons.map(r => r.count) : [0], backgroundColor: '#fd7e14', borderRadius: 4 }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: Object.assign({}, RICH_TOOLTIP, { callbacks: {
+        title: items => {
+          if(!items.length || !reasons.length) return '';
+          return reasons[items[0].dataIndex].reason;
+        },
+        label: ctx => {
+          const it = reasons[ctx.dataIndex];
+          if(!it) return '0 services';
+          return it.count + ' service' + (it.count === 1 ? '' : 's') + ' · Loss KMs: ' + fmt(it.lossKm);
+        },
+        afterBody: items => {
+          if(!items.length || !reasons.length) return [];
+          const it = reasons[items[0].dataIndex];
+          if(!it) return [];
+          const sorted = it.rows.slice().sort((a,b) => (startMinutes(a.start) ?? 9999) - (startMinutes(b.start) ?? 9999));
+          return detailLines(sorted, 60);
+        }
+      } }) },
+      scales: { x: { beginAtZero: true, ticks: { precision: 0 } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } } }
+  });
+
+  const busAct = buildBusActivityFromRows(rows);
+  mkChart('chartBusByNumber', {
+    type: 'bar',
+    data: { labels: busAct.length ? busAct.map(b => b.bus) : ['No buses'], datasets: [
+      { label: 'Trips', data: busAct.length ? busAct.map(b => b.trips) : [0], backgroundColor: '#1e3a8a', borderRadius: 4, maxBarThickness: 28, yAxisID: 'y' },
+      { label: 'Operated KMs', data: busAct.length ? busAct.map(b => b.kms) : [0], backgroundColor: '#a3b82e', borderRadius: 4, maxBarThickness: 28, yAxisID: 'y1' } ] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' }, tooltip: Object.assign({}, RICH_TOOLTIP, { callbacks: {
+        title: items => items.length && busAct.length ? 'Bus ' + busAct[items[0].dataIndex].bus : '',
+        afterBody: items => {
+          const it = items && items.length ? busAct[items[0].dataIndex] : null;
+          if(!it) return [];
+          return ['Route: ' + (it.route || '—')].concat(detailLines(it.rows.slice().sort((a,b) => (startMinutes(a.start) ?? 9999) - (startMinutes(b.start) ?? 9999)), 40));
+        }
+      } }) },
+      scales: {
+        x: { ticks: { maxRotation: 55, minRotation: 30, font: { size: 10 }, autoSkip: true, maxTicksLimit: 30 }, grid: { display: false } },
+        y: { type: 'linear', position: 'left', beginAtZero: true, title: { display: true, text: 'Trips' }, ticks: { precision: 0 } },
+        y1: { type: 'linear', position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, title: { display: true, text: 'KMs' } } } }
+  });
+
+  /* ---- Buses moving per hour: complete bus list, nothing truncated ---- */
+  const hourAct = buildBusHourActivityFromRows(rows);
+  $('timelineDetail').innerHTML = '';
+  mkChart('chartTimeline', {
+    type: 'line',
+    data: { labels: hourAct.length ? hourAct.map(h => pad2(h.hour) + ':00') : ['—'],
+      datasets: [{ label: 'Buses moving', data: hourAct.length ? hourAct.map(h => h.buses) : [0],
+        borderColor: '#1e3a8a', backgroundColor: 'rgba(30,58,138,.12)', fill: true, tension: .35, pointRadius: 4, pointHoverRadius: 7, borderWidth: 2.5 }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      onClick: function(evt, els){
+        if(!els.length || !hourAct.length) return;
+        showHourDetail(hourAct[els[0].index]);
+      },
+      plugins: { legend: { position: 'bottom' }, tooltip: Object.assign({}, RICH_TOOLTIP, { callbacks: {
+        title: items => items.length ? (items[0].label + ' — ' + (hourAct[items[0].dataIndex] ? hourAct[items[0].dataIndex].buses : 0) + ' buses moving') : '',
+        label: () => '',
+        afterBody: items => {
+          const it = items && items.length ? hourAct[items[0].dataIndex] : null;
+          return it && it.busList ? it.busList.map((b, i) => (i+1) + '. ' + b) : [];
+        } } }) },
+      scales: { x: { title: { display: true, text: 'Hour of day' }, grid: { display: false } },
+        y: { beginAtZero: true, title: { display: true, text: 'Number of buses' }, ticks: { precision: 0, stepSize: 1 } } } }
+  });
+}
+
+/* pinned list under the hourly chart (click a point) */
+function showHourDetail(h){
+  const el = $('timelineDetail');
+  if(!el || !h) return;
+  el.innerHTML = '<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">' +
+    '<h4 style="margin:0;font-size:13px;font-weight:700;color:var(--navy);">' + pad2(h.hour) + ':00 — ' + h.buses + ' bus' + (h.buses === 1 ? '' : 'es') + ' moving</h4>' +
+    '<button type="button" class="btn btn-outline btn-sm" id="hourDetailClose">Close</button></div>' +
+    '<div class="tbl-wrap" style="margin-top:8px;"><table><thead><tr><th>#</th><th>Bus · Service · Driver · Start</th></tr></thead><tbody>' +
+    h.busList.map((b, i) => '<tr><td>' + (i+1) + '</td><td class="l">' + esc(b) + '</td></tr>').join('') +
+    '</tbody></table></div></div>';
+  const btn = $('hourDetailClose');
+  if(btn) btn.addEventListener('click', () => { el.innerHTML = ''; });
+}
+
+/* ==========================================================================
+   ROUTE SUMMARY
+   ========================================================================== */
+function rsv2SchKm(r){ return r.schKm; }
+function rsv2ServiceNo(r){
+  const routeNo = r.routeNo, enroute = r.route;
+  if(routeNo && routeNo.toLowerCase() !== enroute.toLowerCase()) return routeNo;
+  const m = String(r.remarks || '').match(/Service No:\s*([^|—]+)/i);
+  if(m) return m[1].trim();
+  return routeNo || '';
+}
+function rsv2ServiceNumber(svc){
+  const m = String(svc || '').trim().toUpperCase().match(/(\d+)\s*$/);
+  if(!m) return null;
+  const n = parseInt(m[1], 10);
+  return isNaN(n) ? null : n;
+}
+
+const RSV2_ROUTE_PLANS = [
+  {
+    id: 'jbs_super_luxury',
+    match: function(name, model){
+      const t = (name + ' ' + model).toLowerCase();
+      return (t.indexOf('jbs') >= 0 || t.indexOf('jubilee') >= 0) &&
+        (t.indexOf('super') >= 0 || t.indexOf('s.luxury') >= 0 || t.indexOf('sl ') >= 0 || /\bsl\b/.test(t));
+    },
+    mode: 'service_parity',
+    planLabel: '2 shifts · EJ odd=Shift 1 · EJ even=Shift 2',
+    columns: [
+      { key: 'Shift 1', label: 'Shift 1\nEJ odd (01,03,05…)' },
+      { key: 'Shift 2', label: 'Shift 2\nEJ even (02,04,06…)' }
+    ]
+  },
+  {
+    id: 'jbs_express',
+    match: function(name, model){
+      const t = (name + ' ' + model).toLowerCase();
+      return (t.indexOf('jbs') >= 0 || t.indexOf('jubilee') >= 0) && t.indexOf('express') >= 0;
+    },
+    mode: 'service_parity',
+    planLabel: '2 shifts · JE odd=Shift 1 · JE even=Shift 2',
+    columns: [
+      { key: 'Shift 1', label: 'Shift 1\nJE odd (01,03,05…)' },
+      { key: 'Shift 2', label: 'Shift 2\nJE even (02,04,06…)' }
+    ]
+  },
+  {
+    id: 'deluxe_nzb_wgl',
+    match: function(name, model){
+      const t = (name + ' ' + model).toLowerCase();
+      const hasDeluxe = t.indexOf('deluxe') >= 0 || t.indexOf('delux') >= 0 || t.indexOf('dlx') >= 0;
+      const hasNzb = t.indexOf('nzb') >= 0 || t.indexOf('nizamabad') >= 0;
+      const hasWgl = t.indexOf('wgl') >= 0 || t.indexOf('warangal') >= 0 || t.indexOf('hanmakonda') >= 0;
+      const hasSpecial = t.indexOf('special') >= 0 || t.indexOf('off') >= 0;
+      return hasDeluxe && (hasNzb || hasWgl) && (hasSpecial || hasNzb);
+    },
+    mode: 'shifts',
+    planLabel: '1 shift (special / off)',
+    columns: [ { key: 'Shift 1', label: 'Shift 1\n(Special / Off)', fromMin: 0, toMin: 24 * 60 } ]
+  }
+];
+
+function rsv2ResolvePlan(routeName, model){
+  for(let i = 0; i < RSV2_ROUTE_PLANS.length; i++){
+    if(RSV2_ROUTE_PLANS[i].match(routeName, model || '')) return RSV2_ROUTE_PLANS[i];
+  }
+  return null;
+}
+
+function rsv2ColumnForRow(r, plan, tripIndex){
+  if(plan && plan.mode === 'service_parity'){
+    const n = rsv2ServiceNumber(rsv2ServiceNo(r));
+    if(n != null && n % 2 === 0) return plan.columns[1] || plan.columns[0];
+    return plan.columns[0];
+  }
+  if(plan && plan.mode === 'shifts'){
+    const mins = startMinutes(r.start);
+    if(mins == null){
+      const raw = (r.shift || r.duty || '').toLowerCase();
+      if(raw.indexOf('2') >= 0 || raw.indexOf('ii') >= 0 || raw.indexOf('evening') >= 0 || raw.indexOf('night') >= 0){
+        return plan.columns[Math.min(1, plan.columns.length - 1)];
+      }
+      return plan.columns[0];
+    }
+    for(let i = 0; i < plan.columns.length; i++){
+      const c = plan.columns[i];
+      if(typeof c.fromMin === 'number' && mins >= c.fromMin && mins < c.toMin) return c;
+    }
+    return plan.columns[plan.columns.length - 1];
+  }
+  const n = Math.max(1, tripIndex || 1);
+  return { key: 'Trip ' + n, label: 'Trip ' + n + '\n(KRMR↔dest)' };
+}
+
+function rsv2BuildRouteModel(rows){
+  const byRoute = {};
+  rows.forEach(r => { const n = r.route || 'Unassigned'; (byRoute[n] = byRoute[n] || []).push(r); });
+
+  const routes = Object.keys(byRoute).sort((a,b) => a.localeCompare(b)).map(routeName => {
+    const routeRows = byRoute[routeName].slice();
+    routeRows.sort(function(a, b){
+      const ma = startMinutes(a.start), mb = startMinutes(b.start);
+      if(ma == null && mb == null) return 0;
+      if(ma == null) return 1;
+      if(mb == null) return -1;
+      return ma - mb;
+    });
+
+    const model = routeRows[0] ? routeRows[0].model : '';
+    const plan = rsv2ResolvePlan(routeName, model);
+
+    const legTripIndex = {};
+    if(!plan){
+      const byBus = {};
+      routeRows.forEach(function(r, idx){
+        const bus = r.bus || ('_svc_' + rsv2ServiceNo(r));
+        (byBus[bus] = byBus[bus] || []).push(idx);
+      });
+      Object.keys(byBus).forEach(function(bus){
+        const idxs = byBus[bus];
+        let tripNo = 1;
+        for(let i = 0; i < idxs.length; i += 2){
+          legTripIndex[idxs[i]] = tripNo;
+          if(i + 1 < idxs.length) legTripIndex[idxs[i + 1]] = tripNo;
+          tripNo += 1;
+        }
+      });
+    }
+
+    const colOrder = [], colSeen = {}, lineMap = {}, lineOrder = [];
+    routeRows.forEach(function(r, idx){
+      const bus = r.bus, svc = rsv2ServiceNo(r);
+      const key = bus + '||' + svc;
+      if(!lineMap[key]){
+        lineMap[key] = { bus: bus, service: svc, trips: {}, schTotal: 0, actTotal: 0, tripCount: 0 };
+        lineOrder.push(key);
+      }
+      const col = rsv2ColumnForRow(r, plan, legTripIndex[idx] || 1);
+      if(!colSeen[col.key]){ colSeen[col.key] = true; colOrder.push(col); }
+      const act = rsv2ActKm(r), sch = rsv2SchKm(r);
+      lineMap[key].trips[col.key] = (lineMap[key].trips[col.key] || 0) + act;
+      lineMap[key].schTotal += sch;
+      lineMap[key].actTotal += act;
+      lineMap[key].tripCount += 1;
+    });
+
+    let shiftLabels;
+    const shiftLabelMap = {};
+    if(plan){
+      shiftLabels = plan.columns.map(c => c.key);
+      plan.columns.forEach(c => { shiftLabelMap[c.key] = c.label; });
+      colOrder.forEach(c => { if(shiftLabels.indexOf(c.key) < 0){ shiftLabels.push(c.key); shiftLabelMap[c.key] = c.label; } });
+    } else {
+      colOrder.sort((a, b) => (parseInt(String(a.key).replace(/\D/g,''),10) || 0) - (parseInt(String(b.key).replace(/\D/g,''),10) || 0));
+      shiftLabels = colOrder.map(c => c.key);
+      colOrder.forEach(c => { shiftLabelMap[c.key] = c.label; });
+    }
+
+    let orderedKeys = lineOrder.slice();
+    if(plan && plan.mode === 'service_parity'){
+      orderedKeys.sort(function(ka, kb){
+        const a = lineMap[ka], b = lineMap[kb];
+        const na = rsv2ServiceNumber(a.service), nb = rsv2ServiceNumber(b.service);
+        const aEven = (na == null) ? 0 : (na % 2 === 0 ? 1 : 0);
+        const bEven = (nb == null) ? 0 : (nb % 2 === 0 ? 1 : 0);
+        if(aEven !== bEven) return aEven - bEven;
+        if(na != null && nb != null && na !== nb) return na - nb;
+        return String(a.service || '').localeCompare(String(b.service || ''));
+      });
+    }
+
+    const lines = orderedKeys.map(k => lineMap[k]);
+    const uniqueBuses = new Set(lines.map(l => l.bus).filter(Boolean));
+    const totalKms = lines.reduce((s, l) => s + l.actTotal, 0);
+    const totalSch = lines.reduce((s, l) => s + l.schTotal, 0);
+
+    return {
+      name: routeName, model: model, plan: plan,
+      planLabel: plan ? plan.planLabel : 'Trips (1 trip = KRMR ↔ destination)',
+      shiftLabels: shiftLabels, shiftLabelMap: shiftLabelMap, lines: lines,
+      busCount: uniqueBuses.size, serviceCount: lines.length,
+      totalKms: totalKms, totalSch: totalSch, totalLoss: totalSch - totalKms
+    };
+  });
+
+  const allBuses = new Set();
+  let grandServices = 0, grandSch = 0, grandAct = 0;
+  routes.forEach(rt => {
+    rt.lines.forEach(l => { if(l.bus) allBuses.add(l.bus); });
+    grandServices += rt.serviceCount; grandSch += rt.totalSch; grandAct += rt.totalKms;
+  });
+  return { routes: routes, grand: { routeCount: routes.length, busCount: allBuses.size, serviceCount: grandServices, schKms: grandSch, actKms: grandAct, lossKms: grandSch - grandAct } };
+}
+
+function renderRoutes(){
+  const area = $('routesArea');
+  area.innerHTML = '';
+  rsv2LastModel = null;
+
+  if(!records.length){ area.innerHTML = emptyStateHtml(); return; }
+  if(!todaysRows.length){
+    area.innerHTML = '<div class="card"><div class="card-body" style="color:var(--muted);line-height:1.6;"><b>No DOR data for ' +
+      isoToDmy(getActiveDate()) + ' in the uploaded file.</b><br>Pick a date between ' + isoToDmy(sortedDates[0]) + ' and ' +
+      isoToDmy(sortedDates[sortedDates.length-1]) + '.</div></div>';
+    return;
+  }
+
+  const model = rsv2BuildRouteModel(todaysRows);
+  rsv2LastModel = model;
+  const dateKey = getActiveDate();
+
+  model.routes.forEach(rt => {
+    const block = document.createElement('div');
+    block.className = 'rsv2-block';
+    const tripHeaders = rt.shiftLabels.map(lab => {
+      const full = (rt.shiftLabelMap && rt.shiftLabelMap[lab]) ? rt.shiftLabelMap[lab] : lab;
+      return '<th style="white-space:normal;line-height:1.25;min-width:88px;">' + esc(full).replace(/\n/g, '<br>') + '</th>';
+    }).join('');
+
+    let bodyRows = '';
+    rt.lines.forEach(function(line, idx){
+      const tripCells = rt.shiftLabels.map(lab => {
+        const v = line.trips[lab];
+        return '<td class="rsv2-km">' + (v ? fmt(v) : '0') + '</td>';
+      }).join('');
+      bodyRows += '<tr><td class="rsv2-route">' + (idx === 0 ? esc(rt.name) : '') + '</td>' +
+        '<td class="rsv2-bus">' + esc(line.bus || '—') + '</td>' +
+        '<td class="rsv2-svc">' + esc(line.service || '—') + '</td>' + tripCells +
+        '<td class="rsv2-total">' + (line.actTotal ? fmt(line.actTotal) : '0') + '</td></tr>';
+    });
+    bodyRows += '<tr class="rsv2-foot"><td class="rsv2-route">BUSSES</td><td class="rsv2-bus">' + rt.busCount + '</td><td></td>' +
+      '<td colspan="' + Math.max(1, rt.shiftLabels.length) + '" style="text-align:right;">TOTAL KMS:</td>' +
+      '<td class="rsv2-total">' + fmt(rt.totalKms) + '</td></tr>';
+
+    const planBadge = rt.planLabel
+      ? ' <span style="font-weight:500;font-size:11.5px;color:var(--blue-dark);text-transform:none;background:#e8eef8;border-radius:6px;padding:2px 8px;margin-left:6px;">' + esc(rt.planLabel) + '</span>' : '';
+
+    block.innerHTML =
+      '<div class="rsv2-block-head"><h3>' + esc(rt.name) +
+        (rt.model ? ' <span style="font-weight:500;font-size:12px;color:var(--muted);text-transform:none;">(' + esc(rt.model) + ')</span>' : '') + planBadge + '</h3>' +
+        '<div class="rsv2-block-meta"><b>' + rt.busCount + '</b> Buses &nbsp;·&nbsp;<b>' + rt.serviceCount + '</b> Services &nbsp;·&nbsp;Total KMs: <b>' + fmt(rt.totalKms) + '</b>' +
+        (rt.totalSch ? ' &nbsp;·&nbsp; Sch: <b>' + fmt(rt.totalSch) + '</b>' : '') +
+        (rt.totalLoss ? ' &nbsp;·&nbsp; Loss: <b class="' + lossClass(rt.totalLoss) + '">' + fmt(rt.totalLoss) + '</b>' : '') + '</div></div>' +
+      '<div class="rsv2-scroll"><table class="rsv2-table"><thead><tr><th>Route</th><th>Bus No</th><th>Service No</th>' + tripHeaders +
+        '<th>Total KMS</th></tr></thead><tbody>' + bodyRows + '</tbody></table></div>';
+    area.appendChild(block);
+  });
+
+  const g = model.grand;
+  const grand = document.createElement('div');
+  grand.className = 'rsv2-grand';
+  grand.innerHTML = '<h3>Grand Total — ' + isoToDmy(dateKey) + '</h3><div class="rsv2-grand-grid">' +
+    '<div class="rsv2-grand-item"><div class="gval">' + g.routeCount + '</div><div class="glbl">Routes</div></div>' +
+    '<div class="rsv2-grand-item"><div class="gval">' + g.busCount + '</div><div class="glbl">Total Buses</div></div>' +
+    '<div class="rsv2-grand-item"><div class="gval">' + g.serviceCount + '</div><div class="glbl">Total Services</div></div>' +
+    '<div class="rsv2-grand-item"><div class="gval">' + fmt(g.schKms) + '</div><div class="glbl">Scheduled KMs</div></div>' +
+    '<div class="rsv2-grand-item"><div class="gval">' + fmt(g.actKms) + '</div><div class="glbl">Operated / Actual KMs</div></div>' +
+    '<div class="rsv2-grand-item"><div class="gval" style="color:' + (g.lossKms > 0 ? '#b91c1c' : '#166534') + '">' + fmt(g.lossKms) + '</div><div class="glbl">Loss KMs</div></div></div>';
+  area.appendChild(grand);
+}
+
+function printWith(mode){
+  hideChartTip();
+  document.body.setAttribute('data-print', mode);
+  const clear = () => { document.body.removeAttribute('data-print'); window.removeEventListener('afterprint', clear); };
+  window.addEventListener('afterprint', clear);
+  setTimeout(() => window.print(), 120);
+}
+$('rsv2PrintBtn').addEventListener('click', () => printWith('routes'));
+$('depotPrintBtn').addEventListener('click', function(){
+  if(!records.length || !todaysRows.length){ alert('No depot summary data for the selected date. Upload the Excel file and pick a date first.'); return; }
+  printWith('depot');
+});
+
+function downloadBlob(text, filename, type){
+  const blob = new Blob([text], { type: type || 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function csvEsc(v){
+  const s = String(v == null ? '' : v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+$('depotCsvBtn').addEventListener('click', function(){
+  if(!lastDepotTotals || !lastDepotTotals.csvRows.length){ alert('No depot summary data for the selected date.'); return; }
+  const lines = [['Model','Shift','Route','Fleet','Sch Services','Ops Services','Sch Kms','Opr Kms','Loss Kms','Drivers'].join(',')];
+  lastDepotTotals.csvRows.forEach(r => lines.push(r.map(csvEsc).join(',')));
+  downloadBlob(lines.join('\n'), 'Depot_Summary_' + getActiveDate() + '.csv');
+});
+
+$('rsv2CsvBtn').addEventListener('click', function(){
+  if(!rsv2LastModel || !rsv2LastModel.routes.length){ alert('No route summary data for the selected date. Upload the Excel file and pick a date first.'); return; }
+  const lines = [['Route','Bus No','Service No','Trip/Shift','KMs','Line Total KMs'].join(',')];
+  rsv2LastModel.routes.forEach(rt => {
+    rt.lines.forEach(line => {
+      const keys = rt.shiftLabels.length ? rt.shiftLabels : Object.keys(line.trips);
+      if(!keys.length){
+        lines.push([csvEsc(rt.name), csvEsc(line.bus), csvEsc(line.service), '', '0', String(line.actTotal || 0)].join(','));
+      } else {
+        keys.forEach(lab => lines.push([csvEsc(rt.name), csvEsc(line.bus), csvEsc(line.service), csvEsc(lab), String(line.trips[lab] || 0), String(line.actTotal || 0)].join(',')));
+      }
+    });
+    lines.push([csvEsc(rt.name + ' TOTAL'), String(rt.busCount), String(rt.serviceCount), '', '', String(rt.totalKms)].join(','));
+  });
+  const g = rsv2LastModel.grand;
+  lines.push(['GRAND TOTAL', String(g.busCount), String(g.serviceCount), '', String(g.schKms), String(g.actKms)].join(','));
+  downloadBlob(lines.join('\n'), 'Route_Summary_' + getActiveDate() + '.csv');
+});
+
+/* ==========================================================================
+   BUS / DRIVER MONTH REPORT
+   ========================================================================== */
+function currentSearchType(){ return document.querySelector('input[name="srchType"]:checked').value; }
+
+function refreshSearchControls(){
+  // months
+  const sel = $('srchMonth');
+  const prev = sel.value;
+  if(!monthList.length){
+    sel.innerHTML = '<option value="">Upload a file first</option>';
+  } else {
+    sel.innerHTML = monthList.slice().reverse().map(m => '<option value="' + m + '">' + esc(monthLabel(m)) + '</option>').join('') +
+      '<option value="all">All months in file</option>';
+    sel.value = (prev && (monthList.indexOf(prev) >= 0 || prev === 'all')) ? prev : monthList[monthList.length - 1];
+  }
+  // suggestions
+  const dl = $('srchList');
+  const type = currentSearchType();
+
+  // service dropdown (all service numbers present in the uploaded file)
+  const svcSel = $('srchService');
+  const prevSvc = svcSel.value;
+  const svcMap = new Map();
+  records.forEach(r => {
+    const s = rsv2ServiceNo(r);
+    if(!s) return;
+    if(!svcMap.has(s)) svcMap.set(s, r.route || '');
+  });
+  const svcOpts = Array.from(svcMap.entries()).sort((a,b) => String(a[0]).localeCompare(String(b[0]), undefined, { numeric: true }));
+  svcSel.innerHTML = svcOpts.length
+    ? '<option value="">— Select a service (' + svcOpts.length + ' in file) —</option>' +
+      svcOpts.map(e => '<option value="' + esc(e[0]) + '">' + esc(e[0]) + (e[1] ? ' — ' + esc(e[1]) : '') + '</option>').join('')
+    : '<option value="">' + (records.length ? 'No service numbers found in the file' : 'Upload a file first') + '</option>';
+  if(prevSvc && svcMap.has(prevSvc)) svcSel.value = prevSvc;
+  svcSel.style.display = type === 'service' ? '' : 'none';
+  $('srchInput').style.display = type === 'service' ? 'none' : '';
+
+  if(type === 'service'){ /* dropdown above is the input for this mode */ }
+  else if(type === 'bus'){
+    const buses = Array.from(new Set(records.map(r => r.bus).filter(Boolean))).sort((a,b) => a.localeCompare(b, undefined, { numeric: true }));
+    dl.innerHTML = buses.map(b => '<option value="' + esc(b) + '"></option>').join('');
+  } else {
+    const map = new Map();
+    records.forEach(r => { if(r.driverId && !map.has(r.driverId)) map.set(r.driverId, r.driverName); });
+    dl.innerHTML = Array.from(map.entries()).sort((a,b) => a[0].localeCompare(b[0], undefined, { numeric: true }))
+      .map(e => '<option value="' + esc(e[0]) + '">' + esc(e[1]) + '</option>').join('');
+  }
+}
+document.querySelectorAll('input[name="srchType"]').forEach(el => el.addEventListener('change', function(){
+  const type = currentSearchType();
+  $('srchLabel').textContent = type === 'bus' ? 'Bus number' : (type === 'driver' ? 'Driver ID' : 'Service number');
+  $('srchInput').placeholder = type === 'bus' ? 'e.g. 1124' : 'e.g. CKD0123';
+  $('srchInput').value = '';
+  refreshSearchControls();
+}));
+$('srchGo').addEventListener('click', generateReport);
+/* picking a service from the dropdown builds the report straight away */
+$('srchService').addEventListener('change', function(){ if(this.value) generateReport(); });
+$('srchInput').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); generateReport(); } });
+
+function currentQuery(){
+  return currentSearchType() === 'service' ? $('srchService').value.trim() : $('srchInput').value.trim();
+}
+function searchLabel(type){
+  return type === 'bus' ? 'bus number' : (type === 'driver' ? 'driver ID' : 'service number');
+}
+
+function matchRecords(pool, type, qRaw){
+  const q = normId(qRaw);
+  const keysOf = r => type === 'bus' ? [normId(r.bus)]
+    : (type === 'service' ? [normId(rsv2ServiceNo(r))]
+    : [normId(r.driverId), normId(r.driverName)]);
+  const exact = pool.filter(r => keysOf(r).some(k => k && k === q));
+  if(exact.length) return { rows: exact, mode: 'exact' };
+  return { rows: pool.filter(r => keysOf(r).some(k => k && k.indexOf(q) >= 0)), mode: 'partial' };
+}
+
+function groupBy(rows, keyFn){
+  const m = new Map();
+  rows.forEach(r => { const k = keyFn(r); if(!m.has(k)) m.set(k, []); m.get(k).push(r); });
+  return m;
+}
+function sortRows(rows){
+  return rows.slice().sort((a, b) => {
+    if(a.iso !== b.iso) return a.iso < b.iso ? -1 : 1;
+    const ma = startMinutes(a.start), mb = startMinutes(b.start);
+    if(ma != null && mb != null && ma !== mb) return ma - mb;
+    return (a.rowNo || 0) - (b.rowNo || 0);
+  });
+}
+
+function generateReport(){
+  const out = $('reportOut');
+  lastReport = null;
+  if(!records.length){ setText('srchStatus', 'err', 'Upload the DOR Excel file first.'); out.innerHTML = emptyStateHtml(); return; }
+  const type = currentSearchType();
+  const qRaw = currentQuery();
+  if(!qRaw){ setText('srchStatus', 'err', (type === 'service' ? 'Pick a service from the dropdown.' : 'Enter a ' + searchLabel(type) + '.')); return; }
+  const month = $('srchMonth').value || 'all';
+  const pool = month === 'all' ? records : records.filter(r => r.iso.slice(0,7) === month);
+  const m = matchRecords(pool, type, qRaw);
+
+  if(!m.rows.length){
+    const elsewhere = matchRecords(records, type, qRaw).rows.length;
+    setText('srchStatus', 'err', 'No duties found.');
+    out.innerHTML = '<div class="card"><div class="card-body"><div class="empty-state"><h3>No duties found for "' + esc(qRaw) + '"</h3>' +
+      (elsewhere ? 'It appears in ' + elsewhere + ' row(s) in other months — change the month above.' :
+        'Check the ' + searchLabel(type) + ' and try again.') + '</div></div></div>';
+    return;
+  }
+  setText('srchStatus', 'ok', '✓ ' + m.rows.length + ' duty rows found.');
+
+  const rows = sortRows(m.rows);
+  const isBus = type === 'bus';
+  const isSvc = type === 'service';
+  const byDate = groupBy(rows, r => r.iso);
+  const dayRows = Array.from(byDate.keys()).sort().map(iso => {
+    const rs = byDate.get(iso);
+    return { iso: iso, duties: rs.length,
+      sch: rs.reduce((s, r) => s + r.schKm, 0), act: rs.reduce((s, r) => s + r.actKm, 0),
+      buses: Array.from(new Set(rs.map(r => r.bus).filter(Boolean))),
+      drivers: Array.from(new Set(rs.map(r => r.driverName || r.driverId).filter(Boolean))) };
+  });
+
+  const tot = {
+    duties: rows.length, days: dayRows.length,
+    sch: rows.reduce((s, r) => s + r.schKm, 0), act: rows.reduce((s, r) => s + r.actKm, 0),
+    schTrip: rows.reduce((s, r) => s + r.schTrip, 0), actTrip: rows.reduce((s, r) => s + r.actTrip, 0), missTrip: rows.reduce((s, r) => s + r.missTrip, 0),
+    buses: new Set(rows.map(r => r.bus).filter(Boolean)), drivers: new Set(rows.map(r => r.driverId || r.driverName).filter(Boolean)),
+    routes: new Set(rows.map(r => r.route).filter(Boolean))
+  };
+
+  // days in the file (for this month) with no duty for this bus / driver
+  const scopeDates = sortedDates.filter(d => month === 'all' || d.slice(0,7) === month);
+  const dutyDates = new Set(dayRows.map(d => d.iso));
+  const offDates = scopeDates.filter(d => !dutyDates.has(d));
+
+  // linked entity tables (drivers used / buses used)
+  const gDrv = groupBy(rows, r => (r.driverId || '') + '||' + (r.driverName || ''));
+  const drvTbl = Array.from(gDrv.entries()).map(([k, rs]) => ({ a: rs[0].driverId || '—', b: rs[0].driverName || '—', days: new Set(rs.map(r => r.iso)).size, duties: rs.length, km: rs.reduce((s, r) => s + r.actKm, 0) }))
+    .sort((x, y) => y.km - x.km);
+  const gBus = groupBy(rows, r => r.bus || '—');
+  const busTbl = Array.from(gBus.entries()).map(([k, rs]) => ({ a: k, b: rs[0].model || '—', days: new Set(rs.map(r => r.iso)).size, duties: rs.length, km: rs.reduce((s, r) => s + r.actKm, 0) }))
+    .sort((x, y) => y.km - x.km);
+  const linked = isBus ? drvTbl : busTbl;
+  // route table
+  const rg = groupBy(rows, r => (r.route || '—') + '||' + rsv2ServiceNo(r));
+  const routeTbl = Array.from(rg.entries()).map(([k, rs]) => ({ route: rs[0].route || '—', svc: rsv2ServiceNo(rs[0]) || '—', days: new Set(rs.map(r => r.iso)).size, duties: rs.length, sch: rs.reduce((s, r) => s + r.schKm, 0), act: rs.reduce((s, r) => s + r.actKm, 0) }))
+    .sort((x, y) => y.act - x.act);
+
+  const first = rows[0];
+  let title;
+  if(isSvc){
+    const svcs = Array.from(new Set(rows.map(r => rsv2ServiceNo(r)).filter(Boolean)));
+    const rts = Array.from(tot.routes);
+    title = 'Service ' + (svcs.length === 1 ? svcs[0] : svcs.length + ' services matching "' + qRaw + '"') +
+      (svcs.length === 1 && rts.length === 1 ? ' — ' + rts[0] : '');
+  } else if(isBus){
+    const buses = Array.from(tot.buses);
+    title = 'Bus ' + (buses.length === 1 ? buses[0] : buses.length + ' buses matching "' + qRaw + '"');
+  } else {
+    const ids = Array.from(new Set(rows.map(r => r.driverId).filter(Boolean)));
+    title = ids.length === 1 ? (first.driverName || 'Driver') + ' (' + ids[0] + ')' : ids.length + ' drivers matching "' + qRaw + '"';
+  }
+  const periodLabel = month === 'all' ? 'All months in file' : monthLabel(month);
+
+  lastReport = { type, title, periodLabel, rows, dayRows, tot, linked, routeTbl, offDates, month, qRaw };
+
+  let partialWhat = '';
+  if(isBus) partialWhat = Array.from(tot.buses).slice(0, 12).join(', ');
+  else if(isSvc) partialWhat = Array.from(new Set(rows.map(r => rsv2ServiceNo(r)).filter(Boolean))).slice(0, 12).join(', ');
+  else partialWhat = Array.from(new Set(rows.map(r => (r.driverId || '') + ' ' + (r.driverName || '')))).slice(0, 8).join(', ');
+  const partialNote = m.mode === 'partial'
+    ? '<div class="rep-note">No exact match for "' + esc(qRaw) + '" — showing partial matches (' + esc(partialWhat) +
+      '). Use the full ' + searchLabel(type) + ' for a single-' + (isBus ? 'bus' : (isSvc ? 'service' : 'driver')) + ' report.</div>' : '';
+
+  const kp = (v, l, color) => '<div class="kpi"><div class="val"' + (color ? ' style="color:' + color + '"' : '') + '>' + v + '</div><div class="lbl">' + l + '</div></div>';
+  const loss = tot.sch - tot.act;
+
+  let html = '<div class="rep-head"><div><h3>' + esc(title) + '</h3><div class="rep-sub">' + esc(periodLabel) + ' · ' + (isBus ? 'Bus' : (isSvc ? 'Service' : 'Driver')) + ' duty report</div></div>' +
+    '<div class="rep-actions"><button class="btn btn-outline btn-sm" id="repPrint">🖨 Print</button>' +
+    '<button class="btn btn-outline btn-sm" id="repCsv">⬇ CSV</button><button class="btn btn-green btn-sm" id="repXlsx">⬇ Excel</button></div></div>' + partialNote +
+    '<div class="kpis">' +
+      kp(tot.days + (scopeDates.length ? ' / ' + scopeDates.length : ''), 'Days on duty' + (scopeDates.length ? ' (of days in file)' : '')) +
+      kp(tot.duties, 'Duty entries') +
+      kp(fmt(tot.sch), 'Scheduled KMs') +
+      kp(fmt(tot.act), 'Operated KMs') +
+      kp(fmt(loss), 'Loss KMs', loss > 0 ? '#c0392b' : '#177a45') +
+      kp(fmt(tot.actTrip) + ' / ' + fmt(tot.schTrip), 'Trips operated / scheduled') +
+      kp(fmt(tot.missTrip), 'Missed trips', tot.missTrip > 0 ? '#c0392b' : '#177a45') +
+      (isSvc ? kp(tot.buses.size, 'Buses used') + kp(tot.drivers.size, 'Drivers used')
+             : kp(isBus ? tot.drivers.size : tot.buses.size, isBus ? 'Drivers used' : 'Buses used')) +
+      kp(tot.routes.size, 'Routes') +
+      kp(tot.days ? fmt(tot.act / tot.days) : '0', 'Avg KMs per duty day') +
+    '</div>';
+
+  html += '<div class="rsv2-chart-card" style="margin-bottom:20px;"><h4>Day-wise KMs</h4><div class="rsv2-chart-wrap"><canvas id="repChart"></canvas></div></div>';
+
+  function entityBlock(heading, h1, h2, list){
+    return '<div><h4>' + heading + '</h4><div class="tbl-wrap"><table><thead><tr><th>' + h1 + '</th><th>' + h2 +
+      '</th><th>Days</th><th>Duties</th><th>Operated KMs</th></tr></thead><tbody>' +
+      list.map(l => '<tr><td class="l">' + esc(l.a) + '</td><td class="l">' + esc(l.b) + '</td><td>' + l.days + '</td><td>' + l.duties + '</td><td>' + fmt(l.km) + '</td></tr>').join('') +
+      '</tbody></table></div></div>';
+  }
+  const routeBlock = '<div><h4>Routes &amp; services</h4><div class="tbl-wrap"><table><thead><tr><th>Route</th><th>Service</th><th>Days</th><th>Duties</th><th>Sch KMs</th><th>Operated KMs</th></tr></thead><tbody>' +
+    routeTbl.map(t => '<tr><td class="l">' + esc(t.route) + '</td><td class="l">' + esc(t.svc) + '</td><td>' + t.days + '</td><td>' + t.duties + '</td><td>' + fmt(t.sch) + '</td><td>' + fmt(t.act) + '</td></tr>').join('') +
+    '</tbody></table></div></div>';
+
+  if(isSvc){
+    /* a service is run by several buses and drivers across the month — show both */
+    html += '<div class="two-col rep-section">' +
+      entityBlock('Buses that ran this service', 'Bus No', 'Model', busTbl) +
+      entityBlock('Drivers on this service', 'Driver ID', 'Driver Name', drvTbl) + '</div>' +
+      '<div class="rep-section">' + routeBlock + '</div>';
+  } else {
+    html += '<div class="two-col rep-section">' +
+      (isBus ? entityBlock('Drivers who drove this bus', 'Driver ID', 'Driver Name', drvTbl)
+             : entityBlock('Buses driven', 'Bus No', 'Model', busTbl)) +
+      routeBlock + '</div>';
+  }
+
+  html += '<div class="rep-section"><h4>Day-wise summary</h4><div class="tbl-wrap tall"><table><thead><tr><th>Date</th><th>Day</th><th>Duties</th><th>' + (isBus ? 'Drivers' : (isSvc ? 'Buses / Drivers' : 'Buses')) + '</th><th>Sch KMs</th><th>Operated KMs</th><th>Loss KMs</th></tr></thead><tbody>' +
+    dayRows.map(d => '<tr><td class="l">' + isoToDmy(d.iso) + '</td><td>' + dayName(d.iso) + '</td><td>' + d.duties + '</td><td class="l">' +
+      esc(isSvc ? ((d.buses.join(', ') || '—') + ' / ' + (d.drivers.join(', ') || '—')) : ((isBus ? d.drivers : d.buses).join(', ') || '—')) + '</td><td>' + fmt(d.sch) + '</td><td>' + fmt(d.act) + '</td><td class="' + lossClass(d.sch - d.act) + '">' + fmt(d.sch - d.act) + '</td></tr>').join('') +
+    '<tr class="total-row"><td class="l" colspan="2">TOTAL</td><td>' + tot.duties + '</td><td></td><td>' + fmt(tot.sch) + '</td><td>' + fmt(tot.act) + '</td><td>' + fmt(loss) + '</td></tr>' +
+    '</tbody></table></div></div>';
+
+  html += '<div class="rep-section"><h4>Days with no duty (' + offDates.length + ')</h4>' +
+    (scopeDates.length ? '' : '') +
+    (offDates.length ? '<div class="chips">' + offDates.map(d => '<span class="chip">' + isoToDmy(d) + ' ' + dayName(d) + '</span>').join('') + '</div>'
+      : '<div class="chips"><span class="chip ok">On duty on every date present in the file</span></div>') + '</div>';
+
+  html += '<div class="rep-section"><h4>Complete duty log (' + rows.length + ' entries — every row from the Excel, unchanged)</h4><div class="tbl-wrap tall"><table><thead><tr>' +
+    '<th>#</th><th>Date</th><th>Day</th><th>Bus No</th><th>Driver ID</th><th>Driver Name</th><th>Route</th><th>Service</th><th>Model</th><th>Shift</th><th>Start</th><th>End</th>' +
+    '<th>Sch KMs</th><th>Act KMs</th><th>Loss KMs</th><th>Sch Trip</th><th>Act Trip</th><th>Miss Trip</th><th>Remarks / Reason</th></tr></thead><tbody>' +
+    rows.map((r, i) => '<tr><td>' + (i+1) + '</td><td class="l">' + isoToDmy(r.iso) + '</td><td>' + dayName(r.iso) + '</td><td>' + esc(r.bus) + '</td><td>' + esc(r.driverId) + '</td>' +
+      '<td class="l">' + esc(r.driverName) + '</td><td class="l">' + esc(r.route) + '</td><td>' + esc(rsv2ServiceNo(r)) + '</td><td class="l">' + esc(r.model) + '</td><td>' + esc(r.shift) + '</td>' +
+      '<td>' + esc(r.start) + '</td><td>' + esc(r.end) + '</td><td>' + fmt(r.schKm) + '</td><td>' + fmt(r.actKm) + '</td><td class="' + lossClass(r.schKm - r.actKm) + '">' + fmt(r.schKm - r.actKm) + '</td>' +
+      '<td>' + fmt(r.schTrip) + '</td><td>' + fmt(r.actTrip) + '</td><td>' + fmt(r.missTrip) + '</td><td class="l">' + esc([r.reason, r.remarks].filter(Boolean).join(' | ')) + '</td></tr>').join('') +
+    '</tbody></table></div></div>';
+
+  out.innerHTML = html;
+
+  $('repPrint').addEventListener('click', () => printWith('report'));
+  $('repCsv').addEventListener('click', exportReportCsv);
+  $('repXlsx').addEventListener('click', exportReportXlsx);
+
+  requestAnimationFrame(() => mkChart('repChart', {
+    type: 'bar',
+    data: { labels: dayRows.map(d => isoToDmy(d.iso).slice(0,5) + ' ' + dayName(d.iso)), datasets: [
+      { label: 'Scheduled KMs', data: dayRows.map(d => d.sch), backgroundColor: '#cbd5e1', borderRadius: 4 },
+      { label: 'Operated KMs', data: dayRows.map(d => d.act), backgroundColor: '#1e3a8a', borderRadius: 4 } ] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } },
+      scales: { x: { ticks: { maxRotation: 60, minRotation: 30, font: { size: 10 }, autoSkip: true } }, y: { beginAtZero: true } } }
+  }));
+  out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function reportLogHeader(){
+  return ['Date','Day','Bus No','Driver ID','Driver Name','Route','Service No','Model','Shift','Start','End','Sch KMs','Act KMs','Loss KMs','Sch Trip','Act Trip','Miss Trip','Reason','Remarks'];
+}
+function reportLogRow(r){
+  return [isoToDmy(r.iso), dayName(r.iso), r.bus, r.driverId, r.driverName, r.route, rsv2ServiceNo(r), r.model, r.shift, r.start, r.end,
+    r.schKm, r.actKm, r.schKm - r.actKm, r.schTrip, r.actTrip, r.missTrip, r.reason, r.remarks];
+}
+function reportFileBase(){
+  const prefix = lastReport.type === 'bus' ? 'Bus_' : (lastReport.type === 'service' ? 'Service_' : 'Driver_');
+  return prefix + String(lastReport.qRaw).replace(/[^A-Za-z0-9_-]+/g,'') + '_' + (lastReport.month === 'all' ? 'AllMonths' : lastReport.month);
+}
+function exportReportCsv(){
+  if(!lastReport) return;
+  const lines = [reportLogHeader().join(',')];
+  lastReport.rows.forEach(r => lines.push(reportLogRow(r).map(csvEsc).join(',')));
+  downloadBlob(lines.join('\n'), reportFileBase() + '.csv');
+}
+function exportReportXlsx(){
+  if(!lastReport) return;
+  const L = lastReport, t = L.tot;
+  const summary = [
+    [L.title], [L.periodLabel], [],
+    ['Days on duty', t.days], ['Duty entries', t.duties], ['Scheduled KMs', t.sch], ['Operated KMs', t.act], ['Loss KMs', t.sch - t.act],
+    ['Trips scheduled', t.schTrip], ['Trips operated', t.actTrip], ['Missed trips', t.missTrip],
+    ['Buses used', t.buses.size], ['Drivers used', t.drivers.size], ['Routes', t.routes.size]
+  ];
+  const day = [['Date','Day','Duties','Sch KMs','Operated KMs','Loss KMs']].concat(L.dayRows.map(d => [isoToDmy(d.iso), dayName(d.iso), d.duties, d.sch, d.act, d.sch - d.act]));
+  const log = [reportLogHeader()].concat(L.rows.map(reportLogRow));
+  const off = [['Days with no duty']].concat(L.offDates.map(d => [isoToDmy(d) + ' ' + dayName(d)]));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summary), 'Summary');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(day), 'Day-wise');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(log), 'Duty Log');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(off), 'No Duty Days');
+  XLSX.writeFile(wb, reportFileBase() + '.xlsx');
+}
+
+/* ==========================================================================
+   BOOT
+   ========================================================================== */
+window.addEventListener('scroll', hideChartTip, { passive: true });
+window.addEventListener('resize', hideChartTip);
+
+(function boot(){
+  const today = localDateISO();
+  $('summaryDate').value = today;
+  $('routesDate').value = today;
+  renderAll();
+  $('reportOut').innerHTML = '';
+})();
+</script>
+</body>
+</html>
